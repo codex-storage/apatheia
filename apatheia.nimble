@@ -9,4 +9,4 @@ srcDir        = "src"
 
 # Dependencies
 
-requires "nim >= 1.6.18"
+requires "chronos >= 4.0.0"
