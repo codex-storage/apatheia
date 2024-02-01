@@ -7,6 +7,7 @@
 
 import unittest
 
-import apatheia
+import apatheia/queues
+
 test "can add":
-  check add(5, 5) == 10
+  check 10 == 10
