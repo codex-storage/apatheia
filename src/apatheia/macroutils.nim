@@ -89,15 +89,6 @@ proc mkParamsVars*(paramsIdent, paramsType, params: NimNode): NimNode =
   result.add varList
   # echo "paramsSetup return:\n", treeRepr result
 
-proc mkCall*(callName, params: NimNode): NimNode =
-  ## Create local variables for each parameter in the actual RPC call proc
-  if params.isNil: return
-  var argList = newSeq[NimNode]()
-  for paramId, paramType in paramsIter(params):
-    argList.add paramId
-  result = newCall(callName, argList)
-  # echo "mkCall return:\n", treeRepr result
-
 proc mkParamsType*(paramsIdent, paramsType, params, genericParams: NimNode): NimNode =
   ## Create a type that represents the arguments for this rpc call
   ## 
@@ -124,3 +115,12 @@ proc mkParamsType*(paramsIdent, paramsType, params, genericParams: NimNode): Nim
   result[0][1] = genericParams.copyNimTree()
   # echo "mkParamsType: ", genericParams.treeRepr
 
+
+proc mkCall*(callName, params: NimNode): NimNode =
+  ## Create local variables for each parameter in the actual RPC call proc
+  if params.isNil: return
+  var argList = newSeq[NimNode]()
+  for paramId, paramType in paramsIter(params):
+    argList.add paramId
+  result = newCall(callName, argList)
+  # echo "mkCall return:\n", treeRepr result

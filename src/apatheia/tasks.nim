@@ -23,9 +23,11 @@ type
   HashOptions* = object
     striped*: bool
 
-proc doHashes*(data: openArray[byte], opts: HashOptions) {.asyncTask.} =
+proc doHashes*(data: openArray[byte],
+               opts: HashOptions) {.asyncTask.} =
 
   echo "args: ", args.len()
+
 
 
 when false:
