@@ -3,6 +3,11 @@ import std/[macros, strutils]
 
 import macroutils
 
+template checkParamType(obj: object) =
+  for name, field in obj.fieldPairs():
+    echo "field name: ", name
+
+
 macro asyncTask*(p: untyped): untyped =
 
   let
@@ -22,17 +27,28 @@ macro asyncTask*(p: untyped): untyped =
   let tcall = mkCall(ident"test", params)
   echo "ASYNC_TASK: call: \n", tcall.treeRepr
 
+  var checks = newStmtList()
+  for paramId, paramType in paramsIter(params):
+    echo "param: ", paramId, " tp: ", paramType.treeRepr
+    checks.add newCall("checkParamType", paramId)
+  
+  echo "asyncTask:checks:\n", checks.repr
+  result = p
+  echo "asyncTask:body:\n", result.repr
+
 type
   HashOptions* = object
     striped*: bool
 
 proc doHashes*(data: openArray[byte],
                opts: HashOptions) {.asyncTask.} =
-  echo "args: ", args.len()
+  # echo "args: ", args.len()
+  discard
 
 proc doHashesRes*(data: openArray[byte],
                opts: HashOptions): int {.asyncTask.} =
-  echo "args: ", args.len()
+  discard
+  # echo "args: ", args.len()
   result = 10
 
 
