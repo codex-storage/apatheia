@@ -129,3 +129,11 @@ proc mkCall*(callName, params: NimNode): NimNode =
     argList.add paramId
   result = newCall(callName, argList)
   # echo "mkCall return:\n", treeRepr result
+
+proc mkProc*(name, params, body: NimNode): NimNode =
+  let params = params.copyNimTree()
+  result = quote do:
+    proc `name`() {.nimcall.} =
+      `body`
+  for param in params:
+    result[3].add param

@@ -33,8 +33,11 @@ macro asyncTask*(p: untyped): untyped =
     checks.add newCall("checkParamType", paramId)
   
   echo "asyncTask:checks:\n", checks.repr
+  echo "asyncTask:mkProc:\n", repr mkProc(ident "tester", params, body)
+
   result = p
   echo "asyncTask:body:\n", result.repr
+
 
 type
   HashOptions* = object
