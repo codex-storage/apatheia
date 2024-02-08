@@ -23,24 +23,24 @@ macro asyncTask*(p: untyped): untyped =
   echo "name: ", name
   echo "hasReturnType: ", hasReturnType(params)
   echo "getReturnType: ", params.getReturnType().treeRepr
+  echo "generics: ", genericParams.treeRepr
   echo "params: \n", params.treeRepr
-  let tcall = mkCall(ident"test", params)
-  echo "ASYNC_TASK: call: \n", tcall.treeRepr
+  # echo "ASYNC_TASK: call: \n", tcall.treeRepr
 
-  var checks = newStmtList()
+  var asyncBody = newStmtList()
   for paramId, paramType in paramsIter(params):
     echo "param: ", paramId, " tp: ", paramType.treeRepr
-    checks.add newCall("checkParamType", paramId)
+    asyncBody.add newCall("checkParamType", paramId)
+  # echo "asyncTask:checks:\n", asyncBody.repr
+  # let tcall = mkCall(ident"tester", params)
   
   echo "asyncTask:body:\n", body.repr
   let taskProc = mkProc(procId, params, body)
-  echo "asyncTask:checks:\n", checks.repr
 
   result = newStmtList()
   result.add taskProc
   echo "asyncTask:body:\n", result.repr
-  echo "asyncTask:body:\n", result.treeRepr
-  echo "asyncTask:orig:\n", p.treeRepr
+  # echo "asyncTask:body:\n", result.treeRepr
 
 type
   HashOptions* = object
