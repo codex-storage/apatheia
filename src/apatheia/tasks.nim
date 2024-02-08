@@ -32,12 +32,15 @@ macro asyncTask*(p: untyped): untyped =
     echo "param: ", paramId, " tp: ", paramType.treeRepr
     checks.add newCall("checkParamType", paramId)
   
+  echo "asyncTask:body:\n", body.repr
+  let taskProc = mkProc(procId, params, body)
   echo "asyncTask:checks:\n", checks.repr
-  echo "asyncTask:mkProc:\n", repr mkProc(ident "tester", params, body)
 
-  result = p
+  result = newStmtList()
+  result.add taskProc
   echo "asyncTask:body:\n", result.repr
-
+  echo "asyncTask:body:\n", result.treeRepr
+  echo "asyncTask:orig:\n", p.treeRepr
 
 type
   HashOptions* = object
@@ -53,7 +56,6 @@ proc doHashesRes*(data: openArray[byte],
   discard
   # echo "args: ", args.len()
   result = 10
-
 
 
 when false:
