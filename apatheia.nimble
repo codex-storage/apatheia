@@ -6,7 +6,6 @@ description   = "Async support for threading primitives"
 license       = "MIT"
 srcDir        = "src"
 
-
 # Dependencies
 
 requires "chronos >= 4.0.0"

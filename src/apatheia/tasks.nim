@@ -1,6 +1,8 @@
 
 import std/[macros, strutils]
 
+import macroutils
+
 macro asyncTask*(p: untyped): untyped =
 
   let
@@ -14,8 +16,14 @@ macro asyncTask*(p: untyped): untyped =
   
   echo "ASYNC_TASK: name: ", name
   echo "ASYNC_TASK: params: \n", params.treeRepr
+  let tcall = mkCall(ident"test", params)
+  echo "ASYNC_TASK: call: \n", tcall.treeRepr
 
-proc doHashes*(args: openArray[byte]) {.asyncTask.} =
+type
+  HashOptions* = object
+    striped*: bool
+
+proc doHashes*(data: openArray[byte], opts: HashOptions) {.asyncTask.} =
 
   echo "args: ", args.len()
 
