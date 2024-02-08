@@ -10,6 +10,11 @@ proc hasReturnType*(params: NimNode): bool =
      params[0].kind != nnkEmpty:
     result = true
 
+proc getReturnType*(params: NimNode): NimNode =
+  if params != nil and params.len > 0 and params[0] != nil and
+     params[0].kind != nnkEmpty:
+    result = params[0]
+
 proc firstArgument*(params: NimNode): (NimNode, NimNode) =
   if params != nil and
       params.len > 0 and

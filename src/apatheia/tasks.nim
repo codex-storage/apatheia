@@ -14,8 +14,11 @@ macro asyncTask*(p: untyped): untyped =
     body = p[6]
     name = repr(procId).strip(false, true, {'*'})
   
-  echo "ASYNC_TASK: name: ", name
-  echo "ASYNC_TASK: params: \n", params.treeRepr
+  echo "\nASYNC_TASK: "
+  echo "name: ", name
+  echo "hasReturnType: ", hasReturnType(params)
+  echo "getReturnType: ", params.getReturnType().treeRepr
+  echo "params: \n", params.treeRepr
   let tcall = mkCall(ident"test", params)
   echo "ASYNC_TASK: call: \n", tcall.treeRepr
 
@@ -25,8 +28,12 @@ type
 
 proc doHashes*(data: openArray[byte],
                opts: HashOptions) {.asyncTask.} =
-
   echo "args: ", args.len()
+
+proc doHashesRes*(data: openArray[byte],
+               opts: HashOptions): int {.asyncTask.} =
+  echo "args: ", args.len()
+  result = 10
 
 
 
