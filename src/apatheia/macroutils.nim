@@ -20,6 +20,7 @@ proc firstArgument*(params: NimNode): (NimNode, NimNode) =
     result = (ident "", newNimNode(nnkEmpty))
 
 iterator paramsIter*(params: NimNode): tuple[name, ntype: NimNode] =
+  ## iterators through the parameters
   for i in 1 ..< params.len:
     let arg = params[i]
     let argType = arg[^2]
