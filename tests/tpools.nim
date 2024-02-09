@@ -47,16 +47,16 @@ when false:
     scratch_486539455.k = extract(isoTemp_486539473)
     var isoTemp_486539475 = isolate(fut)
     scratch_486539455.fut = extract(isoTemp_486539475)
-  proc taskpool_term_486539478(args`gensym15: pointer) {.gcsafe, nimcall,
+  proc taskpool_term_486539478(args: pointer) {.gcsafe, nimcall,
       raises: [].} =
-    let objTemp_486539472 = cast[ptr ScratchObj_486539477](args`gensym15)
+    let objTemp_486539472 = cast[ptr ScratchObj_486539477](args)
     let k_486539474 = objTemp_486539472.k
     let fut_486539476 = objTemp_486539472.fut
     taskpool_term(k = k_486539474, fut = fut_486539476)
 
-  proc destroyScratch_486539479(args`gensym15: pointer) {.gcsafe, nimcall,
+  proc destroyScratch_486539479(args: pointer) {.gcsafe, nimcall,
       raises: [].} =
-    let obj_486539480 = cast[ptr ScratchObj_486539477](args`gensym15)
+    let obj_486539480 = cast[ptr ScratchObj_486539477](args)
     `=destroy`(obj_486539480[])
 
   Task(callback: taskpool_term_486539478, args: scratch_486539455,
