@@ -35,7 +35,6 @@ macro asyncTask*(p: untyped): untyped =
   # echo "asyncTask:checks:\n", asyncBody.repr
   # echo "asyncTask:tcall: ", tcall.repr
 
-
   echo "asyncTask:body:\n", body.repr
   let tp = mkProc(procId.procIdentAppend("Tasklet"),
                   params, body)
