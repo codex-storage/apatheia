@@ -11,3 +11,5 @@ srcDir        = "src"
 requires "chronos >= 4.0.0"
 requires "threading"
 requires "taskpool"
+requires "taskpools"
+
