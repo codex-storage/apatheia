@@ -31,3 +31,33 @@ proc main() =
 
 # Compile with nim c -r -d:release --threads:on --outdir:build example.nim
 main()
+
+when false:
+  type
+    ScratchObj_486539477 = object
+      k: int
+      fut: Flowvar[float]
+
+  let scratch_486539455 = cast[ptr ScratchObj_486539477](c_calloc(csize_t 1,
+      csize_t sizeof(ScratchObj_486539477)))
+  if scratch_486539455.isNil:
+    raise newException(OutOfMemDefect, "Could not allocate memory")
+  block:
+    var isoTemp_486539473 = isolate(k)
+    scratch_486539455.k = extract(isoTemp_486539473)
+    var isoTemp_486539475 = isolate(fut)
+    scratch_486539455.fut = extract(isoTemp_486539475)
+  proc taskpool_term_486539478(args`gensym15: pointer) {.gcsafe, nimcall,
+      raises: [].} =
+    let objTemp_486539472 = cast[ptr ScratchObj_486539477](args`gensym15)
+    let k_486539474 = objTemp_486539472.k
+    let fut_486539476 = objTemp_486539472.fut
+    taskpool_term(k = k_486539474, fut = fut_486539476)
+
+  proc destroyScratch_486539479(args`gensym15: pointer) {.gcsafe, nimcall,
+      raises: [].} =
+    let obj_486539480 = cast[ptr ScratchObj_486539477](args`gensym15)
+    `=destroy`(obj_486539480[])
+
+  Task(callback: taskpool_term_486539478, args: scratch_486539455,
+      destroy: destroyScratch_486539479)
