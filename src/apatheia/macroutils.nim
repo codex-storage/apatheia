@@ -32,9 +32,6 @@ iterator paramsIter*(params: NimNode): tuple[name, ntype: NimNode] =
     for j in 0 ..< arg.len-2:
       yield (arg[j], argType)
 
-proc identPub*(name: string): NimNode =
-  result = nnkPostfix.newTree(newIdentNode("*"), ident name)
-
 proc signalTuple*(sig: NimNode): NimNode =
   let otp = nnkEmpty.newTree()
   # echo "signalObjRaw:sig1: ", sig.treeRepr
@@ -120,6 +117,16 @@ proc mkParamsType*(paramsIdent, paramsType, params, genericParams: NimNode): Nim
   result[0][1] = genericParams.copyNimTree()
   # echo "mkParamsType: ", genericParams.treeRepr
 
+proc identPub*(name: string): NimNode =
+  result = nnkPostfix.newTree(newIdentNode("*"), ident name)
+
+proc procIdentAppend*(id: NimNode, name: string): NimNode =
+  if id.kind == nnkPostfix:
+    echo "PROC ID: ", id.treeRepr
+    result = id
+    result[1] = ident(result[1].strVal & name)
+  else:
+    result = ident(result.strVal & name)
 
 proc mkCall*(callName, params: NimNode): NimNode =
   ## Create local variables for each parameter in the actual RPC call proc
