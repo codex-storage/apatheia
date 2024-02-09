@@ -1,3 +1,4 @@
+import std/os
 
 import chronos
 import chronos/threadsync
@@ -13,8 +14,12 @@ type
     doneSig: ThreadSignalPtr
     value: float
 
-proc addNums(a, b: float, ret: ptr float) =
-  ret[] = a + b
+proc addNums(a, b: float, ret: ptr ThreadArg) =
+  ret.value = a + b
+  os.sleep(1_000)
+  let res = ret.doneSig.fireSync().get()
+  if not res:
+    echo "ERROR FIRING!"
 
 suite "async tests":
 
@@ -25,8 +30,10 @@ suite "async tests":
     args.startSig = ThreadSignalPtr.new().get()
     args.doneSig = ThreadSignalPtr.new().get()
 
-    tp.spawn addNums(1, 2, addr args.value)
-    await sleepAsync(100.milliseconds)
+    tp.spawn addNums(1, 2, addr args)
+    # await sleepAsync(100.milliseconds)
+    await wait(args.doneSig).wait(1500.milliseconds)
+
     echo "\nRES: ", args.value
 
     check true
