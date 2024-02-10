@@ -15,7 +15,7 @@ export queues
 ##
 
 type
-  JobQueue*[T] = object
+  JobQueue*[T] = ref object
     queue*: SignalQueue[(uint, T)]
     futures*: Table[uint, Future[T]]
     taskpool*: Taskpool
