@@ -1,5 +1,6 @@
 import std/tables
 import std/macros
+import std/sequtils
 
 import ./queues
 
@@ -23,8 +24,13 @@ type
 proc processJobs*(jobs: JobQueue) {.async.} =
   while jobs.running:
     echo "jobs running..."
-    let res = await jobs.queue.wait()
+    let res = get await jobs.queue.wait()
     echo "jobs result: ", res.repr
+    echo "jobs futes: ", jobs.unsafeAddr.pointer.repr
+    echo "jobs futes: ", jobs.futures.keys().toSeq()
+    let (id, ret) = res
+    let fut = jobs.futures[id]
+    fut.complete(ret)
 
 proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): JobQueue[T] {.raises: [ApatheiaSignalErr].} =
   result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool, running: true)
@@ -51,6 +57,7 @@ macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
     let `futName` = newFuture[`tp`](astToStr(`exp`))
     let `idName` = `futName`.id()
     `jobs`.futures[`idName`] = `futName`
+    echo "jobs added: ", `jobs`.unsafeAddr.pointer.repr, " => ", `jobs`.futures.keys().toSeq()
     `jobs`.taskpool.spawn(`fncall`)
     `futName`
   
