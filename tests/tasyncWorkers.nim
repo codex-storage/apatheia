@@ -8,33 +8,33 @@ import taskpools
 ## todo: setup basic async + threadsignal + taskpools example here
 ## 
 
-type
-  ThreadArg = object
-    startSig: ThreadSignalPtr
-    doneSig: ThreadSignalPtr
-    value: float
+var todo: Future[float]
 
-proc addNums(a, b: float, ret: ptr ThreadArg) =
-  ret.value = a + b
-  os.sleep(500)
-  let res = ret.doneSig.fireSync().get()
-  if not res:
-    echo "ERROR FIRING!"
+proc completeAfter() {.async.} =
+  {.cast(gcsafe).}:
+    await sleepAsync(500.milliseconds)
+    echo "completing result: "
+    todo.complete(4.0)
+
+proc addNums(a, b: float): Future[float] =
+  {.cast(gcsafe).}:
+    let fut = newFuture[float]("addNums")
+    todo = fut
+    result = fut
 
 suite "async tests":
 
-  var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
+  # var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
 
   asyncTest "test":
-    var args = ThreadArg()
-    args.startSig = ThreadSignalPtr.new().get()
-    args.doneSig = ThreadSignalPtr.new().get()
 
-    tp.spawn addNums(1, 2, addr args)
     # await sleepAsync(100.milliseconds)
-    await wait(args.doneSig).wait(1500.milliseconds)
+    let fut = addNums(1, 3)
+    asyncSpawn completeAfter()
+    echo "\nawaiting result: "
+    let res = await fut
 
-    echo "\nRES: ", args.value
+    echo "\nRES: ", res
 
     check true
 
