@@ -66,3 +66,4 @@ macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
 
 template submit*[T](jobs: JobQueue[T], exp: untyped): Future[T] =
   submitMacro(T, jobs, exp)
+
