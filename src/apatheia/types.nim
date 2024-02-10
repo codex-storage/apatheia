@@ -1,4 +1,4 @@
 
 type
-  ApatheiaException* = ref object of CatchableError
-  ApatheiaSignalErr* = ref object of ApatheiaException
+  ApatheiaException* = object of CatchableError
+  ApatheiaSignalErr* = object of ApatheiaException

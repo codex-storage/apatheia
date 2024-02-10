@@ -15,27 +15,23 @@ type
     doneSig: ThreadSignalPtr
     value: float
 
-proc addNums(a, b: float, ret: AsyncQueue[float]) =
-  ret.value = a + b
+proc addNums(a, b: float, queue: SignalQueue[float]) =
   os.sleep(500)
-  let res = ret.doneSig.fireSync().get()
-  if not res:
-    echo "ERROR FIRING!"
+  discard queue.send(a + b)
 
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
-  var queue = newAsyncQueue[float]()
+  var queue = newSignalQueue[float]()
 
   asyncTest "test":
-    var args = ThreadArg()
-    args.doneSig = ThreadSignalPtr.new().get()
 
-    tp.spawn addNums(1, 2, addr args)
+    tp.spawn addNums(1.0, 2.0, queue)
+
     # await sleepAsync(100.milliseconds)
-    await wait(args.doneSig).wait(1500.milliseconds)
+    await wait(queue).wait(1500.milliseconds)
 
-    echo "\nRES: ", args.value
+    # echo "\nRES: ", args.value
 
     check true
 

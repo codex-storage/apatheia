@@ -1,12 +1,15 @@
 import std/options
 import ./types
 
+import results
 import chronos
 import results
 import chronos/threadsync
 
 export types
 export options
+export threadsync
+export chronos
 
 type
   ChanPtr[T] = ptr Channel[T]
@@ -22,16 +25,24 @@ type
 proc newSignalQueue*[T](): SignalQueue[T] {.raises: [ApatheiaSignalErr].} =
   let res = ThreadSignalPtr.new()
   if res.isErr():
-    raise newException(ApatheiaSignalErr, msg: res.err())
+    raise newException(ApatheiaSignalErr, res.error())
   result.signal = res.get()
-  result.chan = allocSharedChannel()
+  result.chan = allocSharedChannel[T]()
 
-proc send*[T](c: SignalQueue[T], msg: sink T) {.inline.} =
+proc send*[T](c: SignalQueue[T], msg: sink T): Result[void, string] {.raises: [].} =
   ## Sends a message to a thread. `msg` is copied.
-  c.chan.send(msg)
-  c.signal.fireSync()
+  try:
+    c.chan[].send(msg)
+  except Exception as exc:
+    result = err exc.msg
 
-proc trySend*[T](c: SignalQueue[T], msg: sink T): bool {.inline.} =
+  let res = c.signal.fireSync()
+  if res.isErr():
+    let msg: string = res.error()
+    result = err msg
+  result = ok()
+
+proc trySend*[T](c: SignalQueue[T], msg: sink T): bool =
   result = c.chan.trySend(msg)
   if result:
     c.signal.fireSync()
@@ -44,3 +55,5 @@ proc tryRecv*[T](c: SignalQueue[T]): Option[T] =
   if res.dataAvailable:
     some res.msg
 
+proc wait*[T](c: SignalQueue[T]) {.async.} =
+  await wait(c.signal)
