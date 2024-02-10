@@ -3,7 +3,6 @@ import ./types
 
 import results
 import chronos
-import results
 import chronos/threadsync
 
 export types
