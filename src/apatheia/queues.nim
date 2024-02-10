@@ -22,12 +22,13 @@ type
     signal: ThreadSignalPtr
     chan*: ChanPtr[T]
 
-proc newSignalQueue*[T](): SignalQueue[T] {.raises: [ApatheiaSignalErr].} =
+proc newSignalQueue*[T](maxItems: int = 0): SignalQueue[T] {.raises: [ApatheiaSignalErr].} =
   let res = ThreadSignalPtr.new()
   if res.isErr():
     raise newException(ApatheiaSignalErr, res.error())
   result.signal = res.get()
   result.chan = allocSharedChannel[T]()
+  result.chan[].open(maxItems)
 
 proc send*[T](c: SignalQueue[T], msg: sink T): Result[void, string] {.raises: [].} =
   ## Sends a message to a thread. `msg` is copied.
@@ -47,8 +48,11 @@ proc trySend*[T](c: SignalQueue[T], msg: sink T): bool =
   if result:
     c.signal.fireSync()
 
-proc recv*[T](c: SignalQueue[T]): T =
-  c.chan.recv()
+proc recv*[T](c: SignalQueue[T]): Result[T, string] =
+  try:
+    result = ok c.chan[].recv()
+  except Exception as exc:
+    result = err exc.msg
 
 proc tryRecv*[T](c: SignalQueue[T]): Option[T] =
   let res = c.chan.recv()

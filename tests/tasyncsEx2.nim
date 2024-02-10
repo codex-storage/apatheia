@@ -10,13 +10,9 @@ import apatheia/queues
 ## todo: setup basic async + threadsignal + taskpools example here
 ## 
 
-type
-  ThreadArg = object
-    doneSig: ThreadSignalPtr
-    value: float
-
 proc addNums(a, b: float, queue: SignalQueue[float]) =
   os.sleep(500)
+  echo "adding: ", a, " + ", b
   discard queue.send(a + b)
 
 suite "async tests":
@@ -26,10 +22,13 @@ suite "async tests":
 
   asyncTest "test":
 
+    echo "\nstart"
     tp.spawn addNums(1.0, 2.0, queue)
 
     # await sleepAsync(100.milliseconds)
+    echo "waiting on queue"
     await wait(queue).wait(1500.milliseconds)
+    echo "result: ", queue.recv()
 
     # echo "\nRES: ", args.value
 
