@@ -29,9 +29,12 @@ proc new*[T](tp: typedesc[AsyncQueue[T]]): AsyncQueue[T] {.raises: [ApatheiaSign
 proc send*[T](c: AsyncQueue[T], msg: sink T) {.inline.} =
   ## Sends a message to a thread. `msg` is copied.
   c.chan.send(msg)
+  c.signal.fireSync()
 
 proc trySend*[T](c: AsyncQueue[T], msg: sink T): bool {.inline.} =
-  c.chan.trySend(msg)
+  result = c.chan.trySend(msg)
+  if result:
+    c.signal.fireSync()
 
 proc recv*[T](c: AsyncQueue[T]): T =
   c.chan.recv()
