@@ -12,6 +12,6 @@ type
 proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): JobQueue[T] {.raises: [ApatheiaSignalErr].} =
   JobQueue[T](queue: newSignalQueue[T](maxItems), taskpool: taskpool)
 
-template awaitSpawn*[T](jobs: JobQueue[T], exp: untyped): T =
+template awaitJob*[T](jobs: JobQueue[T], exp: typed): auto =
   jobs.taskpool.spawn(exp)
   await wait(jobs.queue)

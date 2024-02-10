@@ -11,13 +11,13 @@ import apatheia/jobs
 ## todo: setup basic async + threadsignal + taskpools example here
 ## 
 
-proc addNums(a, b: float): float =
+proc addNumsRaw(a, b: float): float =
   os.sleep(500)
   echo "adding: ", a, " + ", b
   return a + b
 
 proc addNums(queue: SignalQueue[float], a, b: float) =
-  let res = addNums(a, b)
+  let res = addNumsRaw(a, b)
   discard queue.send(res)
 
 suite "async tests":
@@ -29,7 +29,7 @@ suite "async tests":
   asyncTest "test":
 
     echo "\nstart"
-    let res = jobs.awaitSpawn addNums(jobs.queue, 1.0, 2.0)
+    let res = jobs.awaitJob addNums(jobs.queue, 1.0, 2.0)
 
     # await sleepAsync(100.milliseconds)
     echo "result: ", res.repr
