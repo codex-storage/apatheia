@@ -23,11 +23,11 @@ type
 proc processJobs*(jobs: JobQueue) {.async.} =
   while jobs.running:
     echo "jobs running..."
-    let res = jobs.queue.wait()
+    let res = await jobs.queue.wait()
     echo "jobs result: ", res.repr
 
 proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): JobQueue[T] {.raises: [ApatheiaSignalErr].} =
-  result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool)
+  result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool, running: true)
   asyncSpawn(processJobs(result))
 
 macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
