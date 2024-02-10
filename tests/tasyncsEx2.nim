@@ -5,6 +5,8 @@ import chronos/threadsync
 import chronos/unittest2/asynctests
 import taskpools
 
+import apatheia/queues
+
 ## todo: setup basic async + threadsignal + taskpools example here
 ## 
 
@@ -13,7 +15,7 @@ type
     doneSig: ThreadSignalPtr
     value: float
 
-proc addNums(a, b: float, ret: ptr ThreadArg) =
+proc addNums(a, b: float, ret: AsyncQueue[float]) =
   ret.value = a + b
   os.sleep(500)
   let res = ret.doneSig.fireSync().get()
@@ -23,6 +25,7 @@ proc addNums(a, b: float, ret: ptr ThreadArg) =
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
+  var queue = newAsyncQueue[float]()
 
   asyncTest "test":
     var args = ThreadArg()

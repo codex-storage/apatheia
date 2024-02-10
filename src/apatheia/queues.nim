@@ -15,31 +15,31 @@ proc allocSharedChannel[T](): ChanPtr[T] =
   cast[ChanPtr[T]](allocShared0(sizeof(Channel[T])))
 
 type
-  AsyncQueue*[T] = object
+  SignalQueue*[T] = object
     signal: ThreadSignalPtr
     chan*: ChanPtr[T]
 
-proc new*[T](tp: typedesc[AsyncQueue[T]]): AsyncQueue[T] {.raises: [ApatheiaSignalErr].} =
+proc newSignalQueue*[T](): SignalQueue[T] {.raises: [ApatheiaSignalErr].} =
   let res = ThreadSignalPtr.new()
   if res.isErr():
     raise newException(ApatheiaSignalErr, msg: res.err())
   result.signal = res.get()
   result.chan = allocSharedChannel()
 
-proc send*[T](c: AsyncQueue[T], msg: sink T) {.inline.} =
+proc send*[T](c: SignalQueue[T], msg: sink T) {.inline.} =
   ## Sends a message to a thread. `msg` is copied.
   c.chan.send(msg)
   c.signal.fireSync()
 
-proc trySend*[T](c: AsyncQueue[T], msg: sink T): bool {.inline.} =
+proc trySend*[T](c: SignalQueue[T], msg: sink T): bool {.inline.} =
   result = c.chan.trySend(msg)
   if result:
     c.signal.fireSync()
 
-proc recv*[T](c: AsyncQueue[T]): T =
+proc recv*[T](c: SignalQueue[T]): T =
   c.chan.recv()
 
-proc tryRecv*[T](c: AsyncQueue[T]): Option[T] =
+proc tryRecv*[T](c: SignalQueue[T]): Option[T] =
   let res = c.chan.recv()
   if res.dataAvailable:
     some res.msg
