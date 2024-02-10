@@ -16,7 +16,7 @@ type
 
 proc addNums(a, b: float, ret: ptr ThreadArg) =
   ret.value = a + b
-  os.sleep(1_000)
+  os.sleep(500)
   let res = ret.doneSig.fireSync().get()
   if not res:
     echo "ERROR FIRING!"
