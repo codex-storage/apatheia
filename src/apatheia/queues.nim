@@ -22,6 +22,10 @@ type
     signal: ThreadSignalPtr
     chan*: ChanPtr[T]
 
+proc destroy*[T](val: SignalQueue[T]) =
+  deallocShared(val.chan)
+  discard val.signal.close()
+
 proc newSignalQueue*[T](maxItems: int = 0): SignalQueue[T] {.raises: [ApatheiaSignalErr].} =
   let res = ThreadSignalPtr.new()
   if res.isErr():
