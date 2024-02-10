@@ -4,6 +4,11 @@ import taskpools
 
 export queues
 
+## TODO:
+## setup queue to tie together future and result for a specific instance
+## this setup will result in out-of-order results
+##
+
 type
   JobQueue*[T] = object
     queue*: SignalQueue[T]
