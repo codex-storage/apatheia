@@ -29,7 +29,7 @@ suite "async tests":
   asyncTest "test":
 
     echo "\nstart"
-    let res = jobs.awaitJob(addNums(jobs.queue, 1.0, 2.0)).get()
+    let res = await jobs.submit(addNums(jobs.queue, 1.0, 2.0))
 
     # await sleepAsync(100.milliseconds)
     echo "result: ", res.repr
