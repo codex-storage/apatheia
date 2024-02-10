@@ -47,7 +47,7 @@ macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
   echo "submit: ", fncall.treeRepr
 
   result = quote do:
-    let `queueName` = jobs.queue
+    let `queueName` = `jobs`.queue
     let `futName` = newFuture[`tp`](astToStr(`exp`))
     let `idName` = `futName`.id()
     `jobs`.futures[`idName`] = `futName`
