@@ -27,8 +27,8 @@ suite "async tests":
 
     # await sleepAsync(100.milliseconds)
     echo "waiting on queue"
-    await wait(queue).wait(1500.milliseconds)
-    echo "result: ", queue.recv()
+    let res = await wait(queue).wait(1500.milliseconds)
+    echo "result: ", res
 
     # echo "\nRES: ", args.value
 

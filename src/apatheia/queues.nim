@@ -59,5 +59,6 @@ proc tryRecv*[T](c: SignalQueue[T]): Option[T] =
   if res.dataAvailable:
     some res.msg
 
-proc wait*[T](c: SignalQueue[T]) {.async.} =
+proc wait*[T](c: SignalQueue[T]): Future[Result[T, string]] {.async.} =
   await wait(c.signal)
+  return c.recv()
