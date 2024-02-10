@@ -21,4 +21,3 @@ proc new*[T](tp: typedesc[AsyncQueue[T]]): AsyncQueue[T] {.raises: [ApatheiaSign
   else:
     result.signal = res.get()
 
-
