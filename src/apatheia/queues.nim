@@ -1,3 +1,5 @@
+import std/channels
+
 import ./types
 
 import chronos
@@ -10,11 +12,13 @@ type
 
   AsyncQueue*[T] = object
     signal: ThreadSignalPtr
-    item*: T
+    chan*: T
 
-proc new*[T](tp: typedesc[AsyncQueue[T]]): AsyncQueue[T] {.raises: [ApatheiaException].} =
+proc new*[T](tp: typedesc[AsyncQueue[T]]): AsyncQueue[T] {.raises: [ApatheiaSignalErr].} =
   let res = ThreadSignalPtr.new()
   if res.isErr():
-    raise newException(ApatheiaException, msg: res.err())
+    raise newException(ApatheiaSignalErr, msg: res.err())
+  else:
+    result.signal = res.get()
 
 
