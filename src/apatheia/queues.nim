@@ -1,4 +1,3 @@
-import std/channels
 
 import ./types
 
@@ -9,15 +8,21 @@ import chronos/threadsync
 export types
 
 type
+  ChanPtr[T] = ptr Channel[T]
 
+proc allocSharedChannel[T](): ChanPtr[T] =
+  cast[ChanPtr[T]](allocShared0(sizeof(Channel[T])))
+
+type
   AsyncQueue*[T] = object
     signal: ThreadSignalPtr
-    chan*: T
+    chan*: ChanPtr[T]
 
 proc new*[T](tp: typedesc[AsyncQueue[T]]): AsyncQueue[T] {.raises: [ApatheiaSignalErr].} =
   let res = ThreadSignalPtr.new()
   if res.isErr():
     raise newException(ApatheiaSignalErr, msg: res.err())
-  else:
-    result.signal = res.get()
+  result.signal = res.get()
+  result.chan = allocSharedChannel()
+  
 
