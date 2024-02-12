@@ -43,22 +43,18 @@ proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): Jo
   asyncSpawn(processJobs(result))
 
 macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
-
-  echo "submit:::"
-  echo "submit:T: ", tp.treeRepr
-  echo "submit: ", exp.treerepr
+  ## modifies the call expression to include the job queue and 
+  ## the job id parameters
 
   let futName = genSym(nskLet, "fut")
   let idName = genSym(nskLet, "id")
+  let nm = newLit(repr(exp))
   let queueExpr = quote do:
     `jobs`.queue
   var fncall = nnkCall.newTree(exp[0])
   fncall.add(queueExpr)
   fncall.add(idName)
-  for p in exp[1..^1]:
-    fncall.add(p)
-  echo "submit: ", fncall.treeRepr
-  let nm = newLit(repr(exp))
+  for p in exp[1..^1]: fncall.add(p)
 
   result = quote do:
     let (`idName`, `futName`) = createFuture(`jobs`, `nm`)
