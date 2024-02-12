@@ -32,6 +32,12 @@ proc processJobs*(jobs: JobQueue) {.async.} =
     let fut = jobs.futures[id]
     fut.complete(ret)
 
+proc createFuture*[T](jobs: JobQueue[T], name: static string): (uint, Future[T]) =
+  let fut = newFuture[T](name)
+  jobs.futures[fut.id()] = fut
+  echo "jobs added: ", jobs.unsafeAddr.pointer.repr, " => ", jobs.futures.keys().toSeq()
+  return (fut.id(), fut, )
+
 proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): JobQueue[T] {.raises: [ApatheiaSignalErr].} =
   result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool, running: true)
   asyncSpawn(processJobs(result))
@@ -44,20 +50,18 @@ macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
 
   let futName = genSym(nskLet, "fut")
   let idName = genSym(nskLet, "id")
-  let queueName = genSym(nskLet, "queue")
+  let queueExpr = quote do:
+    `jobs`.queue
   var fncall = nnkCall.newTree(exp[0])
-  fncall.add(queueName)
+  fncall.add(queueExpr)
   fncall.add(idName)
   for p in exp[1..^1]:
     fncall.add(p)
   echo "submit: ", fncall.treeRepr
+  let nm = newLit(repr(exp))
 
   result = quote do:
-    let `queueName` = `jobs`.queue
-    let `futName` = newFuture[`tp`](astToStr(`exp`))
-    let `idName` = `futName`.id()
-    `jobs`.futures[`idName`] = `futName`
-    echo "jobs added: ", `jobs`.unsafeAddr.pointer.repr, " => ", `jobs`.futures.keys().toSeq()
+    let (`idName`, `futName`) = createFuture(`jobs`, `nm`)
     `jobs`.taskpool.spawn(`fncall`)
     `futName`
   
