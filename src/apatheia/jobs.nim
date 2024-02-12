@@ -70,3 +70,8 @@ macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
 template submit*[T](jobs: JobQueue[T], exp: untyped): Future[T] =
   submitMacro(T, jobs, exp)
 
+template jobWrapper*(task: untyped) =
+  template `task Wrapper`*(jobResult: JobResult[float], args: varargs[untyped]) =
+    let res = unpackVarargs(`task`(args))
+    discard jobResult.queue.send((jobResult.id, res,))
+
