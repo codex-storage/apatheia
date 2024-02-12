@@ -16,9 +16,9 @@ proc addNumsRaw(a, b: float): float =
   echo "adding: ", a, " + ", b
   return a + b
 
-proc addNums(queue: SignalQueue[(uint, float)], id: uint, a, b: float) =
+proc addNums(jobResult: JobResult[float], a, b: float) =
   let res = addNumsRaw(a, b)
-  discard queue.send((id, res,))
+  discard jobResult.queue.send((jobResult.id, res,))
 
 suite "async tests":
 
