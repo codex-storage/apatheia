@@ -26,8 +26,7 @@ proc processJobs*(jobs: JobQueue) {.async.} =
     echo "jobs running..."
     let res = get await jobs.queue.wait()
     echo "jobs result: ", res.repr
-    echo "jobs futes: ", jobs.unsafeAddr.pointer.repr
-    echo "jobs futes: ", jobs.futures.keys().toSeq()
+    echo "jobs futes: ", jobs.futures.unsafeAddr.pointer.repr, " => ", jobs.futures.keys().toSeq()
     let (id, ret) = res
     let fut = jobs.futures[id]
     fut.complete(ret)
@@ -35,7 +34,7 @@ proc processJobs*(jobs: JobQueue) {.async.} =
 proc createFuture*[T](jobs: JobQueue[T], name: static string): (uint, Future[T]) =
   let fut = newFuture[T](name)
   jobs.futures[fut.id()] = fut
-  echo "jobs added: ", jobs.unsafeAddr.pointer.repr, " => ", jobs.futures.keys().toSeq()
+  echo "jobs added: ", jobs.futures.unsafeAddr.pointer.repr, " => ", jobs.futures.keys().toSeq()
   return (fut.id(), fut, )
 
 proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): JobQueue[T] {.raises: [ApatheiaSignalErr].} =
@@ -49,8 +48,7 @@ macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
   let futName = genSym(nskLet, "fut")
   let idName = genSym(nskLet, "id")
   let nm = newLit(repr(exp))
-  let queueExpr = quote do:
-    `jobs`.queue
+  let queueExpr = quote do: `jobs`.queue
   var fncall = nnkCall.newTree(exp[0])
   fncall.add(queueExpr)
   fncall.add(idName)
