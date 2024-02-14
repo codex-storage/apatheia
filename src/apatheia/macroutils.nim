@@ -121,11 +121,11 @@ proc identPub*(name: string): NimNode =
   result = nnkPostfix.newTree(newIdentNode("*"), ident name)
 
 proc procIdentAppend*(id: NimNode, name: string): NimNode =
+  result = id.copyNimTree()
   if id.kind == nnkPostfix:
-    result = id
     result[1] = ident(result[1].strVal & name)
   else:
-    result = ident(result.strVal & name)
+    result = ident(id.strVal & name)
 
 proc mkCall*(callName, params: NimNode): NimNode =
   ## Create local variables for each parameter in the actual RPC call proc
@@ -143,4 +143,4 @@ proc mkProc*(name, params, body: NimNode): NimNode =
       `body`
   result[3].del(0)
   for arg in args:
-    result[3].add arg
+    result.params.add arg

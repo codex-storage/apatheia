@@ -32,7 +32,7 @@ suite "async tests":
     var jobs = newJobQueue[float](taskpool = tp)
 
     echo "\nstart"
-    let res = await jobs.submit(addNums(1.0, 2.0,))
+    let res = await jobs.submit(addNums2(1.0, 2.0,))
 
     # await sleepAsync(100.milliseconds)
     echo "result: ", res.repr

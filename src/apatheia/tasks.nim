@@ -29,20 +29,22 @@ macro asyncTask*(p: untyped): untyped =
   echo "name: ", name
   # echo "ASYNC_TASK: call: \n", tcall.treeRepr
 
-  var asyncBody = newStmtList()
-  for paramId, paramType in paramsIter(params):
-    echo "param: ", paramId, " tp: ", paramType.treeRepr
-    asyncBody.add newCall("checkParamType", paramId)
-  let tcall = mkCall(ident name, params)
-  # echo "asyncTask:checks:\n", asyncBody.repr
-  # echo "asyncTask:tcall: ", tcall.repr
-
-  echo "asyncTask:body:\n", body.repr
   let tp = mkProc(procId.procIdentAppend("Tasklet"),
                   params, body)
 
+  var asyncBody = newStmtList()
+  let tcall = newCall(ident name)
+  for paramId, paramType in paramsIter(params):
+    echo "param: ", paramId, " tp: ", paramType.treeRepr
+    tcall.add newCall("checkParamType", paramId)
+  asyncBody.add tcall
+  let fn = mkProc(procId, params, asyncBody)
+
+  # echo "asyncTask:fn:body:\n", fn.treerepr
+
   result = newStmtList()
   result.add tp
+  result.add fn
   echo "asyncTask:body:\n", result.repr
   # echo "asyncTask:body:\n", result.treeRepr
 
