@@ -42,8 +42,8 @@ macro asyncTask*(p: untyped): untyped =
   # asyncBody.add nnkLetSection.newTree(
   #   nnkIdentDefs.newTree(ident"res", newEmptyNode(), tcall))
   asyncBody = quote do:
-    let res {.inject.} = `tcall`
-    discard jobResult.queue.send((jobResult.id, res,))
+    let val {.inject.} = `tcall`
+    discard jobResult.queue.send((jobResult.id, val,))
 
   var asyncParams = params.copyNimTree()
   let retType = if not hasReturnType(params): ident"void"
