@@ -72,6 +72,6 @@ template submit*[T](jobs: JobQueue[T], exp: untyped): Future[T] =
 
 template jobWrapper*(task: untyped) =
   template `task Wrapper`*(jobResult: JobResult[float], args: varargs[untyped]) =
-    let res = unpackVarargs(`task`(args))
+    let res = unpackVarargs(`task`, args)
     discard jobResult.queue.send((jobResult.id, res,))
 

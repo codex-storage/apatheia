@@ -20,8 +20,6 @@ proc addNums(jobResult: JobResult[float], a, b: float) =
   let res = addNumsRaw(a, b)
   discard jobResult.queue.send((jobResult.id, res,))
 
-jobWrapper(addNumsRaw)
-
 suite "async tests":
 
   # var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
