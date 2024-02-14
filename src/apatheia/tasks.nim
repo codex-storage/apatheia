@@ -38,7 +38,14 @@ macro asyncTask*(p: untyped): untyped =
     echo "param: ", paramId, " tp: ", paramType.treeRepr
     tcall.add newCall("checkParamType", paramId)
   asyncBody.add tcall
-  let fn = mkProc(procId, params, asyncBody)
+  var asyncParams = params.copyNimTree()
+  let retType = if not hasReturnType(params): ident"void"
+                else: params.getReturnType()
+  echo "RETTYPE: ", retType.repr
+  # let jobRes = genSym(nskLet, "jobRes")
+  # asyncParams.insert(0, )
+  let fn = mkProc(procId, asyncParams, asyncBody)
+
 
   # echo "asyncTask:fn:body:\n", fn.treerepr
 
@@ -54,6 +61,10 @@ type
 
 proc doHashes*(data: openArray[byte],
                opts: HashOptions) {.asyncTask.} =
+  discard
+
+proc doHashes2*(data: openArray[byte],
+               opts: HashOptions): float {.asyncTask.} =
   discard
 
 # proc doHashesRes*(data: openArray[byte],
