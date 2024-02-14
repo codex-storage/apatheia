@@ -63,7 +63,7 @@ macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
     let (`jobRes`, `futName`) = createFuture(`jobs`, `nm`)
     `jobs`.taskpool.spawn(`fncall`)
     `futName`
-  
+
   echo "submit: res:\n", result.repr
   echo ""
 

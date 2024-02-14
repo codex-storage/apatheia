@@ -53,6 +53,7 @@ macro asyncTask*(p: untyped): untyped =
     nnkBracketExpr.newTree(ident"JobResult", retType),
     newEmptyNode()
   )
+  asyncParams[0] = newEmptyNode()
   asyncParams.insert(1, jobArg)
   let fn = mkProc(procId, asyncParams, asyncBody)
 
