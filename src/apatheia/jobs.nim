@@ -58,7 +58,7 @@ proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): Jo
   result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool, running: true)
   asyncSpawn(processJobs(result))
 
-macro submitMacro*(tp: untyped, jobs: untyped, exp: untyped): untyped =
+macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   ## modifies the call expression to include the job queue and 
   ## the job id parameters
 
