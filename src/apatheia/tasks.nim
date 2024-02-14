@@ -39,8 +39,12 @@ macro asyncTask*(p: untyped): untyped =
   for paramId, paramType in paramsIter(params):
     echo "param: ", paramId, " tp: ", paramType.treeRepr
     tcall.add newCall("checkParamType", paramId)
-  asyncBody.add quote do:
-    let res = `tcall`
+  # asyncBody.add nnkLetSection.newTree(
+  #   nnkIdentDefs.newTree(ident"res", newEmptyNode(), tcall))
+  asyncBody = quote do:
+    let res {.inject.} = `tcall`
+    discard jobResult.queue.send((jobResult.id, res,))
+
   var asyncParams = params.copyNimTree()
   let retType = if not hasReturnType(params): ident"void"
                 else: params.getReturnType()
@@ -71,6 +75,7 @@ type
 proc doHashes2*(data: openArray[byte],
                opts: HashOptions): float {.asyncTask.} =
   echo "hashing"
+
 
 # proc doHashesRes*(data: openArray[byte],
 #                opts: HashOptions): int {.asyncTask.} =
