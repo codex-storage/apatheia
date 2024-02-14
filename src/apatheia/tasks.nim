@@ -28,6 +28,8 @@ macro asyncTask*(p: untyped): untyped =
   echo "\nASYNC_TASK: "
   echo "name: ", name
   # echo "ASYNC_TASK: call: \n", tcall.treeRepr
+  if not hasReturnType(params):
+    error("tasklet definition must have return type", p)
 
   let tp = mkProc(procId.procIdentAppend("Tasklet"),
                   params, body)
@@ -62,9 +64,9 @@ type
   HashOptions* = object
     striped*: bool
 
-proc doHashes*(data: openArray[byte],
-               opts: HashOptions) {.asyncTask.} =
-  echo "hashing"
+# proc doHashes*(data: openArray[byte],
+#                opts: HashOptions) {.asyncTask.} =
+#   echo "hashing"
 
 proc doHashes2*(data: openArray[byte],
                opts: HashOptions): float {.asyncTask.} =
