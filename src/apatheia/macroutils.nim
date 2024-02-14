@@ -122,7 +122,6 @@ proc identPub*(name: string): NimNode =
 
 proc procIdentAppend*(id: NimNode, name: string): NimNode =
   if id.kind == nnkPostfix:
-    echo "PROC ID: ", id.treeRepr
     result = id
     result[1] = ident(result[1].strVal & name)
   else:

@@ -3,10 +3,16 @@ import std/[macros, strutils]
 
 import macroutils
 
-template checkParamType(obj: object) =
+import jobs
+export jobs
+
+template checkParamType*(obj: object): auto =
   for name, field in obj.fieldPairs():
     echo "field name: ", name
+  obj
 
+template checkParamType*(obj: typed): auto =
+  obj
 
 macro asyncTask*(p: untyped): untyped =
 
@@ -21,10 +27,6 @@ macro asyncTask*(p: untyped): untyped =
   
   echo "\nASYNC_TASK: "
   echo "name: ", name
-  echo "hasReturnType: ", hasReturnType(params)
-  echo "getReturnType: ", params.getReturnType().treeRepr
-  echo "generics: ", genericParams.treeRepr
-  echo "params: \n", params.treeRepr
   # echo "ASYNC_TASK: call: \n", tcall.treeRepr
 
   var asyncBody = newStmtList()
@@ -50,33 +52,10 @@ type
 
 proc doHashes*(data: openArray[byte],
                opts: HashOptions) {.asyncTask.} =
-  # echo "args: ", args.len()
   discard
 
-proc doHashesRes*(data: openArray[byte],
-               opts: HashOptions): int {.asyncTask.} =
-  discard
-  # echo "args: ", args.len()
-  result = 10
-
-
-when false:
-  proc doHashesTask*(args: seq[Data]) =
-    discard
-
-  proc doHashes*(args: seq[Data]) {.async.} =
-    # setup signals ... etc
-    # memory stuffs
-    # create future
-    let argsPtr = addr args[0]
-    let argsLen = args.len()
-    GC_ref(args)
-
-    doHashes(toOpenArray(argsPtr, argsLen))
-    GC_unref(args)
-  
-
-  proc processHashes*(args: seq[Data]) {.async.} =
-    ## do some processing on another thread
-    let res = await doHashes(args)
+# proc doHashesRes*(data: openArray[byte],
+#                opts: HashOptions): int {.asyncTask.} =
+#   # echo "args: ", args.len()
+#   result = 10
 
