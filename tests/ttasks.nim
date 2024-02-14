@@ -11,14 +11,13 @@ import apatheia/tasks
 ## todo: setup basic async + threadsignal + taskpools example here
 ## 
 
-
 proc addNums(a, b: float): float {.asyncTask.} =
-  os.sleep(500)
+  os.sleep(100)
   echo "adding: ", a, " + ", b
   return a + b
 
 proc addNumValues(vals: openArray[float]): float {.asyncTask.} =
-  os.sleep(500)
+  os.sleep(100)
   result = 0.0
   for x in vals:
     result += x
