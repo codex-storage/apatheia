@@ -99,16 +99,14 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   ## modifies the call expression to include the job queue and 
   ## the job id parameters
 
-  # let jobRes = genSym(nskLet, "jobRes")
-  # let futName = genSym(nskLet, "fut")
   let jobRes = ident("jobRes")
   let futName = ident("fut")
   let nm = newLit(repr(exp))
-  # var fncall = exp
-  # exp.insert(1, jobRes)
+
   var fncall = nnkCall.newTree(exp[0])
   fncall.add(jobRes)
   for p in exp[1..^1]:
+    echo "CHECK ARGS: ", p.treeRepr
     fncall.add(nnkCall.newTree(ident"checkJobArgs", p, `futName`))
 
   result = quote do:
@@ -145,7 +143,7 @@ when isMainModule:
     var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
 
     asyncTest "test":
-      expandMacros:
+      # expandMacros:
         var jobs = newJobQueue[float](taskpool = tp)
 
         let job = jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
