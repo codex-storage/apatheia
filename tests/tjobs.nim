@@ -20,6 +20,13 @@ proc addNums(jobResult: JobResult[float], a, b: float) =
 proc addNumsIncorrect(jobResult: JobResult[float], vals: openArray[float]): float =
   discard
 
+proc addNumValues(jobResult: JobResult[float], base: float, vals: OpenArrayHolder[float]) =
+  os.sleep(100)
+  var res = base
+  for x in vals.toOpenArray():
+    res += x
+  discard jobResult.queue.send((jobResult.id, res,))
+
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
@@ -34,8 +41,8 @@ suite "async tests":
 
     check res == 3.0
 
-  # asyncTest "test":
-  #   var jobs = newJobQueue[float](taskpool = tp)
-  #   let res = await jobs.submit(addNumValues([1.0, 2.0]))
-  #   check res == 3.0
+  asyncTest "testing arrays":
+    var jobs = newJobQueue[float](taskpool = tp)
+    let res = await jobs.submit(addNumValues(@[1.0, 2.0]))
+    check res == 3.0
 

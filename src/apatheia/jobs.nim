@@ -74,17 +74,18 @@ proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): Jo
   asyncSpawn(processJobs(result))
 
 template checkJobArgs*[T](exp: seq[T]): OpenArrayHolder[T] =
-  static:
-    echo "checkJobArgs::SEQ: ", $typeof(exp)
-  let val = exp
+  # static:
+  #   echo "checkJobArgs::SEQ: ", $typeof(exp)
+  var val = exp # evaluate once
   let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(val[0])), size: val.len())
   defer:
+    ## try and keep the value type
     discard val.len()
   expPtr
 
 template checkJobArgs*(exp: typed): auto =
-  static:
-    echo "checkJobArgs:: ", $typeof(exp)
+  # static:
+  #   echo "checkJobArgs:: ", $typeof(exp)
   exp
 
 macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
