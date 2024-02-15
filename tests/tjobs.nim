@@ -1,5 +1,6 @@
 import std/os
 
+import chronicles
 import chronos
 import chronos/threadsync
 import chronos/unittest2/asynctests

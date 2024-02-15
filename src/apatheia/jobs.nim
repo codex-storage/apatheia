@@ -6,8 +6,13 @@ import ./queues
 
 import taskpools
 import chronos
+import chronicles
 
 export queues
+
+logScope:
+  # Lexical properties are typically assigned to a constant:
+  topics = "apatheia jobs"
 
 ## This module provides a simple way to submit jobs to taskpools
 ## and getting a result returned via an async future.
@@ -36,10 +41,9 @@ proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
   ## and complete the associated futures.
 
   while jobs.running:
-    echo "jobs running..."
+    info "Processing jobs in job queue"
     let res = await(jobs.queue.wait()).get()
-    echo "jobs result: ", res.repr
-    echo "jobs futes: ", jobs.futures.unsafeAddr.pointer.repr, " => ", jobs.futures.keys().toSeq()
+    debug "got job result", jobResult = res
     let (id, ret) = res
     var fut: Future[T]
     if jobs.futures.pop(id, fut):
