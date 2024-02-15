@@ -9,11 +9,6 @@ import taskpools
 import apatheia/queues
 import apatheia/jobs
 
-## todo: setup basic async + threadsignal + taskpools example here
-## 
-
-import std/macros
-
 proc addNumsRaw(a, b: float): float =
   os.sleep(50)
   return a + b
