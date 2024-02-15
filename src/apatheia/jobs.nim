@@ -81,10 +81,8 @@ template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
   #   echo "checkJobArgs::SEQ: ", $typeof(exp)
   let rval = SeqHolder[T](data: exp)
   let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len())
-  # defer:
-  #   ## try and keep the value type
-  #   discard val.len()
   fut.addCallback proc(data: pointer) =
+    ## just to keep the rval GC object alive for the duration of the job
     discard rval.data.len()
     echo "FREE RVaL: ", rval.data.len()
   ## TODO: how to handle cancellations?
