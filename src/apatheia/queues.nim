@@ -21,12 +21,13 @@ type
     signal: ThreadSignalPtr
     chan*: ChanPtr[T]
 
-proc destroy*[T](val: SignalQueue[T]) =
+proc dispose*[T](val: SignalQueue[T]) =
+  ## Call to properly dispose of a SignalQueue.
   deallocShared(val.chan)
   discard val.signal.close()
 
 proc newSignalQueue*[T](maxItems: int = 0): SignalQueue[T] {.raises: [ApatheiaSignalErr].} =
-  ## Create a signal queue compatible with Chronos async
+  ## Create a signal queue compatible with Chronos async.
   let res = ThreadSignalPtr.new()
   if res.isErr():
     raise newException(ApatheiaSignalErr, res.error())
