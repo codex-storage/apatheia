@@ -82,8 +82,8 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
       `jobs`.taskpool.spawn(`fncall`)
     `futName`
 
-  echo "submit: res:\n", result.repr
-  echo ""
+  # echo "submit: res:\n", result.repr
+  # echo ""
 
 template submit*[T](jobs: JobQueue[T], exp: untyped): Future[T] =
   submitMacro(T, jobs, exp)
