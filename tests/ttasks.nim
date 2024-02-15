@@ -5,7 +5,6 @@ import chronos/threadsync
 import chronos/unittest2/asynctests
 import taskpools
 
-import apatheia/queues
 import apatheia/tasks
 
 proc addNums(a, b: float): float {.asyncTask.} =
@@ -20,14 +19,19 @@ proc addNumValues(vals: openArray[float]): float {.asyncTask.} =
 
 suite "async tests":
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
+  var jobsVar = newJobQueue[float](taskpool = tp)
+
+  proc getJobs(): JobQueue[float] =
+    {.cast(gcsafe).}:
+      jobsVar
 
   asyncTest "test addNums":
-    var jobs = newJobQueue[float](taskpool = tp)
+    let jobs = getJobs()
     let res = await jobs.submit(addNums(1.0, 2.0,))
     check res == 3.0
 
   asyncTest "test addNumValues":
-    var jobs = newJobQueue[float](taskpool = tp)
+    let jobs = getJobs()
     let args = @[1.0, 2.0, 3.0]
     let res = await jobs.submit(addNumValues(args))
     check res == 6.0
