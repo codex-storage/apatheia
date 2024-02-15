@@ -94,10 +94,9 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
       `jobs`.taskpool.spawn(`fncall`)
       `futName`
 
-  echo "\nSUBMIT MACRO::\n", result.repr
-  echo ""
-  echo "\nSUBMIT MACRO::\n", result.treeRepr
-  echo ""
+  when isMainModule:
+    echo "\nSUBMIT MACRO::\n", result.repr
+    echo ""
 
 template submit*[T](jobs: JobQueue[T], exp: untyped): Future[T] =
   submitMacro(T, jobs, exp)
@@ -108,6 +107,7 @@ when isMainModule:
   import chronos/threadsync
   import chronos/unittest2/asynctests
   import std/macros
+
 
   proc addNumValues(jobResult: JobResult[float], vals: openArray[float]) =
     os.sleep(100)
@@ -124,7 +124,7 @@ when isMainModule:
       expandMacros:
         var jobs = newJobQueue[float](taskpool = tp)
 
-        let job = jobs.submit(addNumValues([1.0, 2.0]))
+        let job = jobs.submit(addNumValues(@[1.0, 2.0]))
         let res = await job
 
         check res == 3.0
