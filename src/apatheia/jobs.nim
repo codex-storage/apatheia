@@ -81,10 +81,10 @@ template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
   #   echo "checkJobArgs::SEQ: ", $typeof(exp)
   let rval = SeqHolder[T](data: exp)
   let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len())
-  fut.addCallback proc(data: pointer) =
-    ## keep the rval GC object alive for duration of the job
-    discard rval.data.len()
-    echo "FREE RVaL: ", rval.data.len()
+  # fut.addCallback proc(data: pointer) =
+  #   ## keep the rval GC object alive for duration of the job
+  #   discard rval.data.len()
+  #   echo "FREE RVaL: ", rval.data.len()
   ## TODO: how to handle cancellations?
   expPtr
 
@@ -103,14 +103,29 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   let futName = ident("fut")
   let nm = newLit(repr(exp))
 
+  var argids = newSeq[NimNode]()
+  var letargs = nnkLetSection.newTree()
+  for i, p in exp[1..^1]:
+    echo "CHECK ARGS: ", p.treeRepr
+    let id = ident "arg" & $i
+    argids.add(id)
+    let pn = nnkCall.newTree(ident"checkJobArgs", p, nil)
+    letargs.add nnkIdentDefs.newTree( id, newEmptyNode(), pn)
+    # fncall.add(nnkCall.newTree(ident"checkJobArgs", p, `futName`))
+  echo "\nSUBMIT: ARGS: LET:\n", letargs.repr
+  echo ""
+  
   var fncall = nnkCall.newTree(exp[0])
   fncall.add(jobRes)
-  for p in exp[1..^1]:
-    echo "CHECK ARGS: ", p.treeRepr
-    fncall.add(nnkCall.newTree(ident"checkJobArgs", p, `futName`))
+  for p in argids:
+    fncall.add(p)
+  # for p in exp[1..^1]:
+  #   echo "CHECK ARGS: ", p.treeRepr
+  #   fncall.add(nnkCall.newTree(ident"checkJobArgs", p, `futName`))
 
   result = quote do:
     block:
+      `letargs`
       let (`jobRes`, `futName`) = createFuture(`jobs`, `nm`)
       when typeof(`fncall`) isnot void:
         {.error: "Apatheia jobs cannot return values. The given proc returns type: " & $(typeof(`fncall`)) &
