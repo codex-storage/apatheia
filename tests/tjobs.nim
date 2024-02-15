@@ -17,6 +17,12 @@ proc addNums(jobResult: JobResult[float], a, b: float) =
   let res = addNumsRaw(a, b)
   discard jobResult.queue.send((jobResult.id, res,))
 
+proc addNumValues(jobResult: JobResult[float], vals: openArray[float]): float =
+  os.sleep(100)
+  result = 0.0
+  for x in vals:
+    result += x
+
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
@@ -27,4 +33,9 @@ suite "async tests":
     let res = await jobs.submit(addNums(1.0, 2.0,))
 
     check res == 3.0
+
+  # asyncTest "test":
+  #   var jobs = newJobQueue[float](taskpool = tp)
+  #   let res = await jobs.submit(addNumValues([1.0, 2.0]))
+  #   check res == 3.0
 

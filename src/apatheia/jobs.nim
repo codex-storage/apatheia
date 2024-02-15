@@ -94,13 +94,11 @@ when isMainModule:
   import chronos/unittest2/asynctests
   import std/macros
 
-  proc addNumsRaw(a, b: float): float =
-    os.sleep(50)
-    return a + b
-
-  proc addNums(jobResult: JobResult[float], a, b: float) =
-    let res = addNumsRaw(a, b)
-    discard jobResult.queue.send((jobResult.id, res,))
+  proc addNumValues(jobResult: JobResult[float], vals: openArray[float]): float =
+    os.sleep(100)
+    result = 0.0
+    for x in vals:
+      result += x
 
   suite "async tests":
 
@@ -110,7 +108,8 @@ when isMainModule:
       expandMacros:
         var jobs = newJobQueue[float](taskpool = tp)
 
-        let job = jobs.submit(addNums(1.0, 2.0,))
+        let vals = @[1.0, 2.0]
+        let job = jobs.submit(addNumValues(vals))
         let res = await job
 
         check res == 3.0
