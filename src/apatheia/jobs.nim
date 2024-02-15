@@ -83,6 +83,7 @@ template checkJobArgs*[T](exp: seq[T]): OpenArrayHolder[T] =
     discard val.len()
   expPtr
 
+
 template checkJobArgs*(exp: typed): auto =
   # static:
   #   echo "checkJobArgs:: ", $typeof(exp)
@@ -92,10 +93,8 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   ## modifies the call expression to include the job queue and 
   ## the job id parameters
 
-  # let jobRes = genSym(nskLet, "jobRes")
-  # let futName = genSym(nskLet, "fut")
-  let jobRes = ident("jobRes")
-  let futName = ident("fut")
+  let jobRes = genSym(nskLet, "jobResTmp")
+  let futName = genSym(nskLet, "fut")
   let nm = newLit(repr(exp))
   # var fncall = exp
   # exp.insert(1, jobRes)
@@ -107,9 +106,9 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   result = quote do:
     block:
       let (`jobRes`, `futName`) = createFuture(`jobs`, `nm`)
-      when typeof(`fncall`) isnot void:
-        {.error: "Apatheia jobs cannot return values. The given proc returns type: " & $(typeof(`fncall`)) &
-                  " for call " & astToStr(`fncall`).}
+      # when typeof(`fncall`) isnot void:
+      #   {.error: "Apatheia jobs cannot return values. The given proc returns type: " & $(typeof(`fncall`)) &
+      #             " for call " & astToStr(`fncall`).}
       `jobs`.taskpool.spawn(`fncall`)
       `futName`
 
