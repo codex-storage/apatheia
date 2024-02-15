@@ -3,7 +3,7 @@
 
 > *Apatheia* (*Greek: ἀπάθεια; from a- "without" and pathos "suffering" or "passion"*), in Stoicism, refers to a state of mind in which one is not disturbed by the passions. It might better be translated by the word equanimity than the word indifference. 
 
-The goal of the apatheia library is to provide a painless, suffering free multi-threading compatible with async. 
+The goal of the apatheia library is to provide a painless, suffering free way of using multi-threading with async in Nim. 
 
 The main modules are:
 - queues - queues with support for async signals
