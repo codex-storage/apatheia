@@ -52,13 +52,13 @@ proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
       fut.complete(ret)
     else:
       raise newException(IndexDefect, "missing future: " & $id)
-  info "Processing jobs in job queue"
+  info "Finishing processing jobs for type ", type=tn
 
 proc createFuture*[T](jobs: JobQueue[T], name: static string): (JobResult[T], Future[T]) =
   let fut = newFuture[T](name)
   let id = JobId fut.id()
   jobs.futures[id] = fut
-  echo "jobs added: ", jobs.futures.unsafeAddr.pointer.repr, " => ", jobs.futures.keys().toSeq()
+  trace "jobs added: ", numberJobs = jobs.futures.len()
   return (JobResult[T](id: id, queue: jobs.queue), fut, )
 
 proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): JobQueue[T] {.raises: [ApatheiaSignalErr].} =
