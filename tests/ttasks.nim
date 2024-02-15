@@ -12,7 +12,7 @@ import apatheia/tasks
 ## 
 
 proc addNums(a, b: float): float {.asyncTask.} =
-  os.sleep(100)
+  os.sleep(50)
   return a + b
 
 proc addNumValues(vals: openArray[float]): float {.asyncTask.} =

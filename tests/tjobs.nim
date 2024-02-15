@@ -15,8 +15,7 @@ import apatheia/jobs
 import std/macros
 
 proc addNumsRaw(a, b: float): float =
-  os.sleep(500)
-  echo "adding: ", a, " + ", b
+  os.sleep(50)
   return a + b
 
 proc addNums(jobResult: JobResult[float], a, b: float) =
@@ -33,13 +32,7 @@ suite "async tests":
   asyncTest "test":
     var jobs = newJobQueue[float](taskpool = tp)
 
-    echo "\nstart"
     let res = await jobs.submit(addNums(1.0, 2.0,))
 
-    # await sleepAsync(100.milliseconds)
-    echo "result: ", res.repr
-
-    # echo "\nRES: ", args.value
-
-    check true
+    check res == 3.0
 
