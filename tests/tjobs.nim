@@ -24,9 +24,6 @@ proc addNums(jobResult: JobResult[float], a, b: float) =
 
 suite "async tests":
 
-  # var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
-  # var queue = newSignalQueue[float]()
-
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
 
   asyncTest "test":

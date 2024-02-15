@@ -7,12 +7,8 @@ import taskpools
 
 import apatheia/queues
 
-## todo: setup basic async + threadsignal + taskpools example here
-## 
-
 proc addNums(a, b: float, queue: SignalQueue[float]) =
-  os.sleep(500)
-  echo "adding: ", a, " + ", b
+  os.sleep(50)
   discard queue.send(a + b)
 
 suite "async tests":
