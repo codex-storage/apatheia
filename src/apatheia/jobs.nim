@@ -82,7 +82,7 @@ template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
   let rval = SeqHolder[T](data: exp)
   let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len())
   fut.addCallback proc(data: pointer) =
-    ## just to keep the rval GC object alive for the duration of the job
+    ## keep the rval GC object alive for duration of the job
     discard rval.data.len()
     echo "FREE RVaL: ", rval.data.len()
   ## TODO: how to handle cancellations?
