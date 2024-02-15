@@ -15,9 +15,6 @@ proc addNums(a, b: float, queue: SignalQueue[float]) =
   echo "adding: ", a, " + ", b
   discard queue.send(a + b)
 
-proc addNumsRun(tp: Taskpool, queue: SignalQueue[float]) =
-    tp.spawn addNums(1.0, 2.0, queue)
-
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
@@ -25,15 +22,11 @@ suite "async tests":
 
   asyncTest "test":
 
-    echo "\nstart"
-    addNumsRun(tp, queue)
+    ## init
+    tp.spawn addNums(1.0, 2.0, queue)
 
-    # await sleepAsync(100.milliseconds)
-    echo "waiting on queue"
     let res = await wait(queue).wait(1500.milliseconds)
-    echo "result: ", res
 
-    # echo "\nRES: ", args.value
+    check res.get() == 3.0 
 
-    check true
 
