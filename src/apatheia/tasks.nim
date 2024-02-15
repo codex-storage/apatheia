@@ -6,9 +6,11 @@ import macroutils
 import jobs
 export jobs
 
+# TODO: make these do something useful or remove them
+
 template checkParamType*(obj: object): auto =
-  for name, field in obj.fieldPairs():
-    echo "field name: ", name
+  # for name, field in obj.fieldPairs():
+  #   echo "field name: ", name
   obj
 
 template checkParamType*(obj: typed): auto =
