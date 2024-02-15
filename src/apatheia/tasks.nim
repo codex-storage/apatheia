@@ -36,7 +36,6 @@ macro asyncTask*(p: untyped): untyped =
   var asyncBody = newStmtList()
   let tcall = newCall(ident(name & "Tasklet"))
   for paramId, paramType in paramsIter(params):
-    echo "param: ", paramId, " tp: ", paramType.treeRepr
     tcall.add newCall("checkParamType", paramId)
   asyncBody = quote do:
     let val {.inject.} = `tcall`
@@ -57,23 +56,18 @@ macro asyncTask*(p: untyped): untyped =
   result = newStmtList()
   result.add tp
   result.add fn
-  # echo "asyncTask:body:\n", result.repr
 
-type
-  HashOptions* = object
-    striped*: bool
+  when isMainModule:
+    echo "asyncTask:body:\n", result.repr
 
-# proc doHashes*(data: openArray[byte],
-#                opts: HashOptions) {.asyncTask.} =
-#   echo "hashing"
+when isMainModule:
 
-proc doHashes2*(data: openArray[byte],
-               opts: HashOptions): float {.asyncTask.} =
-  echo "hashing"
+  type
+    HashOptions* = object
+      striped*: bool
 
+  proc doHashes2*(data: openArray[byte],
+                opts: HashOptions): float {.asyncTask.} =
+    echo "hashing"
 
-# proc doHashesRes*(data: openArray[byte],
-#                opts: HashOptions): int {.asyncTask.} =
-#   # echo "args: ", args.len()
-#   result = 10
 
