@@ -36,7 +36,10 @@ type
 
   OpenArrayHolder*[T] = object
     data*: ptr UncheckedArray[T]
-    len*: int
+    size*: int
+
+template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
+  system.toOpenArray(arr.data, 0, arr.size)
 
 proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
   ## Starts a "detached" async processor for a given job queue.
@@ -74,7 +77,7 @@ template checkJobArgs*[T](exp: seq[T]): OpenArrayHolder[T] =
   static:
     echo "checkJobArgs::SEQ: ", $typeof(exp)
   let val = exp
-  let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(val[0])), len: val.len())
+  let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(val[0])), size: val.len())
   defer:
     discard val.len()
   expPtr
@@ -125,7 +128,7 @@ when isMainModule:
   proc addNumValues(jobResult: JobResult[float], base: float, vals: OpenArrayHolder[float]) =
     os.sleep(100)
     var res = base
-    for x in toOpenArray(vals.data, 0, vals.len):
+    for x in vals.toOpenArray():
       res += x
     discard jobResult.queue.send((jobResult.id, res,))
 
