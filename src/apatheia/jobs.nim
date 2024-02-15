@@ -9,6 +9,7 @@ import chronos
 import chronicles
 
 export queues
+export chronicles
 
 logScope:
   # Lexical properties are typically assigned to a constant:
@@ -40,16 +41,18 @@ proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
   ## This processor waits for events from the queue in the JobQueue
   ## and complete the associated futures.
 
+  const tn: string = $(JobQueue[T])
+  info "Processing jobs in job queue for type ", type=tn
   while jobs.running:
-    info "Processing jobs in job queue"
     let res = await(jobs.queue.wait()).get()
-    debug "got job result", jobResult = res
+    trace "got job result", jobResult = $res
     let (id, ret) = res
     var fut: Future[T]
     if jobs.futures.pop(id, fut):
       fut.complete(ret)
     else:
       raise newException(IndexDefect, "missing future: " & $id)
+  info "Processing jobs in job queue"
 
 proc createFuture*[T](jobs: JobQueue[T], name: static string): (JobResult[T], Future[T]) =
   let fut = newFuture[T](name)

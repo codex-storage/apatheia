@@ -13,7 +13,7 @@ import apatheia/tasks
 
 proc addNums(a, b: float): float {.asyncTask.} =
   os.sleep(100)
-  echo "adding: ", a, " + ", b
+  # info "adding: ", a=a, b=b
   return a + b
 
 proc addNumValues(vals: openArray[float]): float {.asyncTask.} =
@@ -21,7 +21,7 @@ proc addNumValues(vals: openArray[float]): float {.asyncTask.} =
   result = 0.0
   for x in vals:
     result += x
-  echo "adding sums: ", vals
+  # echo "adding sums: ", vals
 
 suite "async tests":
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
