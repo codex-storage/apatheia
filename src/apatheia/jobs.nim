@@ -54,6 +54,7 @@ proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
   info "Finishing processing jobs for type ", type=tn
 
 proc createFuture*[T](jobs: JobQueue[T], name: static string): (JobResult[T], Future[T]) =
+  ## Creates a future that returns the result of the associated job.
   let fut = newFuture[T](name)
   let id = JobId fut.id()
   jobs.futures[id] = fut
@@ -61,6 +62,7 @@ proc createFuture*[T](jobs: JobQueue[T], name: static string): (JobResult[T], Fu
   return (JobResult[T](id: id, queue: jobs.queue), fut, )
 
 proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): JobQueue[T] {.raises: [ApatheiaSignalErr].} =
+  ## Creates a new async-compatible threaded job queue.
   result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool, running: true)
   asyncSpawn(processJobs(result))
 
