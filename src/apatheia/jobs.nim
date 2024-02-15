@@ -34,6 +34,10 @@ type
     id*: JobId
     queue*: SignalQueue[(JobId, T)]
 
+  OpenArrayHolder*[T] = object
+    data*: ptr UncheckedArray[T]
+    len*: int
+
 proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
   ## Starts a "detached" async processor for a given job queue.
   ## 
@@ -66,10 +70,18 @@ proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): Jo
   result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool, running: true)
   asyncSpawn(processJobs(result))
 
-template checkJobResultType(exp: typed) =
+template checkJobArgs*[T](exp: seq[T]): OpenArrayHolder[T] =
   static:
-    echo "CHECKJOBRESULTTYPE:: ", $typeof(exp), " => ", typeof(exp) is void
-    assert typeof(exp) is void
+    echo "checkJobArgs::SEQ: ", $typeof(exp)
+  let val = exp
+  let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(val[0])), len: val.len())
+  defer:
+    discard val.len()
+  expPtr
+
+template checkJobArgs*(exp: typed): auto =
+  static:
+    echo "checkJobArgs:: ", $typeof(exp)
   exp
 
 macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
@@ -81,9 +93,12 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   let jobRes = ident("jobRes")
   let futName = ident("fut")
   let nm = newLit(repr(exp))
-  var fncall = exp
-  exp.insert(1, jobRes)
-
+  # var fncall = exp
+  # exp.insert(1, jobRes)
+  var fncall = nnkCall.newTree(exp[0])
+  fncall.add(jobRes)
+  for p in exp[1..^1]:
+    fncall.add(nnkCall.newTree(ident"checkJobArgs", p))
 
   result = quote do:
     block:
@@ -101,18 +116,16 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
 template submit*[T](jobs: JobQueue[T], exp: untyped): Future[T] =
   submitMacro(T, jobs, exp)
 
-
 when isMainModule:
   import os
   import chronos/threadsync
   import chronos/unittest2/asynctests
   import std/macros
 
-
-  proc addNumValues(jobResult: JobResult[float], vals: openArray[float]) =
+  proc addNumValues(jobResult: JobResult[float], base: float, vals: OpenArrayHolder[float]) =
     os.sleep(100)
-    var res = 0.0
-    for x in vals:
+    var res = base
+    for x in toOpenArray(vals.data, 0, vals.len):
       res += x
     discard jobResult.queue.send((jobResult.id, res,))
 
@@ -124,7 +137,7 @@ when isMainModule:
       expandMacros:
         var jobs = newJobQueue[float](taskpool = tp)
 
-        let job = jobs.submit(addNumValues(@[1.0, 2.0]))
+        let job = jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
         let res = await job
 
-        check res == 3.0
+        check res == 13.0
