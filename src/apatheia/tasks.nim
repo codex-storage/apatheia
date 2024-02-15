@@ -25,22 +25,19 @@ macro asyncTask*(p: untyped): untyped =
     body = p[6]
     name = repr(procId).strip(false, true, {'*'})
   
-  echo "\nASYNC_TASK: "
-  echo "name: ", name
-  # echo "ASYNC_TASK: call: \n", tcall.treeRepr
   if not hasReturnType(params):
     error("tasklet definition must have return type", p)
 
+  # setup inner tasklet proc
   let tp = mkProc(procId.procIdentAppend("Tasklet"),
                   params, body)
 
+  # setup async wrapper code
   var asyncBody = newStmtList()
   let tcall = newCall(ident(name & "Tasklet"))
   for paramId, paramType in paramsIter(params):
     echo "param: ", paramId, " tp: ", paramType.treeRepr
     tcall.add newCall("checkParamType", paramId)
-  # asyncBody.add nnkLetSection.newTree(
-  #   nnkIdentDefs.newTree(ident"res", newEmptyNode(), tcall))
   asyncBody = quote do:
     let val {.inject.} = `tcall`
     discard jobResult.queue.send((jobResult.id, val,))
@@ -57,13 +54,10 @@ macro asyncTask*(p: untyped): untyped =
   asyncParams.insert(1, jobArg)
   let fn = mkProc(procId, asyncParams, asyncBody)
 
-  # echo "asyncTask:fn:body:\n", fn.treerepr
-
   result = newStmtList()
   result.add tp
   result.add fn
-  echo "asyncTask:body:\n", result.repr
-  # echo "asyncTask:body:\n", result.treeRepr
+  # echo "asyncTask:body:\n", result.repr
 
 type
   HashOptions* = object
