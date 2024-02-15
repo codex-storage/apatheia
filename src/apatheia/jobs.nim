@@ -38,6 +38,9 @@ type
     data*: ptr UncheckedArray[T]
     size*: int
 
+  SeqHolder*[T] = ref object
+    data*: seq[T]
+
 template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
@@ -76,11 +79,11 @@ proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): Jo
 template checkJobArgs*[T](exp: seq[T]): OpenArrayHolder[T] =
   # static:
   #   echo "checkJobArgs::SEQ: ", $typeof(exp)
-  var val = exp # evaluate once
-  let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(val[0])), size: val.len())
-  defer:
-    ## try and keep the value type
-    discard val.len()
+  let rval = SeqHolder[T](data: exp)
+  let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len())
+  # defer:
+  #   ## try and keep the value type
+  #   discard val.len()
   expPtr
 
 
@@ -93,8 +96,10 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   ## modifies the call expression to include the job queue and 
   ## the job id parameters
 
-  let jobRes = genSym(nskLet, "jobResTmp")
-  let futName = genSym(nskLet, "fut")
+  # let jobRes = genSym(nskLet, "jobRes")
+  # let futName = genSym(nskLet, "fut")
+  let jobRes = ident("jobRes")
+  let futName = ident("fut")
   let nm = newLit(repr(exp))
   # var fncall = exp
   # exp.insert(1, jobRes)
@@ -106,9 +111,9 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   result = quote do:
     block:
       let (`jobRes`, `futName`) = createFuture(`jobs`, `nm`)
-      # when typeof(`fncall`) isnot void:
-      #   {.error: "Apatheia jobs cannot return values. The given proc returns type: " & $(typeof(`fncall`)) &
-      #             " for call " & astToStr(`fncall`).}
+      when typeof(`fncall`) isnot void:
+        {.error: "Apatheia jobs cannot return values. The given proc returns type: " & $(typeof(`fncall`)) &
+                  " for call " & astToStr(`fncall`).}
       `jobs`.taskpool.spawn(`fncall`)
       `futName`
 
