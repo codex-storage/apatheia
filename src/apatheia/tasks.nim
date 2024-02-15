@@ -15,13 +15,17 @@ template checkParamType*(obj: typed): auto =
   obj
 
 macro asyncTask*(p: untyped): untyped =
+  ## Pragma to transfer a proc into a "tasklet" which runs
+  ## the proc body in a separate thread and returns the result
+  ## in an async compatible manner.
+  ## 
 
   let
     procId = p[0]
-    procLineInfo = p.lineInfoObj
-    genericParams = p[2]
+    # procLineInfo = p.lineInfoObj
+    # genericParams = p[2]
     params = p[3]
-    pragmas = p[4]
+    # pragmas = p[4]
     body = p[6]
     name = repr(procId).strip(false, true, {'*'})
   
@@ -67,7 +71,7 @@ when isMainModule:
       striped*: bool
 
   proc doHashes2*(data: openArray[byte],
-                opts: HashOptions): float {.asyncTask.} =
+                  opts: HashOptions): float {.asyncTask.} =
     echo "hashing"
 
 
