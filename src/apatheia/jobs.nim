@@ -66,27 +66,42 @@ proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): Jo
   result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool, running: true)
   asyncSpawn(processJobs(result))
 
+template checkJobResultType(exp: typed) =
+  static:
+    echo "CHECKJOBRESULTTYPE:: ", $typeof(exp), " => ", typeof(exp) is void
+    assert typeof(exp) is void
+  exp
+
 macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   ## modifies the call expression to include the job queue and 
   ## the job id parameters
 
-  let jobRes = genSym(nskLet, "jobRes")
-  let futName = genSym(nskLet, "fut")
+  # let jobRes = genSym(nskLet, "jobRes")
+  # let futName = genSym(nskLet, "fut")
+  let jobRes = ident("jobRes")
+  let futName = ident("fut")
   let nm = newLit(repr(exp))
-  var fncall = nnkCall.newTree(exp[0])
-  fncall.add(jobRes)
-  for p in exp[1..^1]: fncall.add(p)
+  var fncall = exp
+  exp.insert(1, jobRes)
+
 
   result = quote do:
-    let (`jobRes`, `futName`) = createFuture(`jobs`, `nm`)
-    `jobs`.taskpool.spawn(`fncall`)
-    `futName`
+    block:
+      let (`jobRes`, `futName`) = createFuture(`jobs`, `nm`)
+      when typeof(`fncall`) isnot void:
+        {.error: "Apatheia jobs cannot return values. The given proc returns type: " & $(typeof(`fncall`)) &
+                  " for call " & astToStr(`fncall`).}
+      `jobs`.taskpool.spawn(`fncall`)
+      `futName`
 
-  # echo "submit: res:\n", result.repr
-  # echo ""
+  echo "\nSUBMIT MACRO::\n", result.repr
+  echo ""
+  echo "\nSUBMIT MACRO::\n", result.treeRepr
+  echo ""
 
 template submit*[T](jobs: JobQueue[T], exp: untyped): Future[T] =
   submitMacro(T, jobs, exp)
+
 
 when isMainModule:
   import os
@@ -94,11 +109,12 @@ when isMainModule:
   import chronos/unittest2/asynctests
   import std/macros
 
-  proc addNumValues(jobResult: JobResult[float], vals: openArray[float]): float =
+  proc addNumValues(jobResult: JobResult[float], vals: openArray[float]) =
     os.sleep(100)
-    result = 0.0
+    var res = 0.0
     for x in vals:
-      result += x
+      res += x
+    discard jobResult.queue.send((jobResult.id, res,))
 
   suite "async tests":
 
@@ -108,8 +124,7 @@ when isMainModule:
       expandMacros:
         var jobs = newJobQueue[float](taskpool = tp)
 
-        let vals = @[1.0, 2.0]
-        let job = jobs.submit(addNumValues(vals))
+        let job = jobs.submit(addNumValues([1.0, 2.0]))
         let res = await job
 
         check res == 3.0
