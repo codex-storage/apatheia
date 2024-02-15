@@ -12,6 +12,8 @@ import apatheia/jobs
 ## todo: setup basic async + threadsignal + taskpools example here
 ## 
 
+import std/macros
+
 proc addNumsRaw(a, b: float): float =
   os.sleep(500)
   echo "adding: ", a, " + ", b
@@ -29,7 +31,6 @@ suite "async tests":
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
 
   asyncTest "test":
-
     var jobs = newJobQueue[float](taskpool = tp)
 
     echo "\nstart"

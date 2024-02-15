@@ -10,6 +10,6 @@ srcDir        = "src"
 
 requires "chronos >= 4.0.0"
 requires "threading"
-requires "taskpools"
+requires "taskpools >= 0.0.5"
 requires "chronicles"
 
