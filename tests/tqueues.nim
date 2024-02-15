@@ -15,6 +15,9 @@ proc addNums(a, b: float, queue: SignalQueue[float]) =
   echo "adding: ", a, " + ", b
   discard queue.send(a + b)
 
+proc addNumsRun(tp: Taskpool, queue: SignalQueue[float]) =
+    tp.spawn addNums(1.0, 2.0, queue)
+
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
@@ -23,7 +26,7 @@ suite "async tests":
   asyncTest "test":
 
     echo "\nstart"
-    tp.spawn addNums(1.0, 2.0, queue)
+    addNumsRun(tp, queue)
 
     # await sleepAsync(100.milliseconds)
     echo "waiting on queue"
