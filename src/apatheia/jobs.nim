@@ -76,21 +76,27 @@ proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): Jo
   result = JobQueue[T](queue: newSignalQueue[(uint, T)](maxItems), taskpool: taskpool, running: true)
   asyncSpawn(processJobs(result))
 
-template checkJobArgs*[T](exp: seq[T]): OpenArrayHolder[T] =
+template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
   # static:
   #   echo "checkJobArgs::SEQ: ", $typeof(exp)
   let rval = SeqHolder[T](data: exp)
+  GC_ref(rval)
   let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len())
   # defer:
   #   ## try and keep the value type
   #   discard val.len()
+  fut.addCallback proc(data: pointer) =
+    GC_unref(rval)
+    echo "FREE RVaL: "
+  ## TODO: how to handle cancellations?
   expPtr
 
 
-template checkJobArgs*(exp: typed): auto =
+template checkJobArgs*(exp: typed, fut: untyped): auto =
   # static:
   #   echo "checkJobArgs:: ", $typeof(exp)
   exp
+
 
 macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   ## modifies the call expression to include the job queue and 
@@ -106,7 +112,7 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   var fncall = nnkCall.newTree(exp[0])
   fncall.add(jobRes)
   for p in exp[1..^1]:
-    fncall.add(nnkCall.newTree(ident"checkJobArgs", p))
+    fncall.add(nnkCall.newTree(ident"checkJobArgs", p, `futName`))
 
   result = quote do:
     block:

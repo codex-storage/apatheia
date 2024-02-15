@@ -43,6 +43,6 @@ suite "async tests":
 
   asyncTest "testing arrays":
     var jobs = newJobQueue[float](taskpool = tp)
-    let res = await jobs.submit(addNumValues(@[1.0, 2.0]))
-    check res == 3.0
+    let res = await jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
+    check res == 13.0
 
