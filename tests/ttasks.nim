@@ -6,6 +6,7 @@ import chronos/unittest2/asynctests
 import taskpools
 
 import apatheia/tasks
+import apatheia/memholders
 
 proc addNums(a, b: float): float {.asyncTask.} =
   os.sleep(50)
@@ -35,3 +36,14 @@ suite "async tests":
     let args = @[1.0, 2.0, 3.0]
     let res = await jobs.submit(addNumValues(args))
     check res == 6.0
+
+  asyncTest "testing openArrays":
+    var jobs = newJobQueue[float](taskpool = tp)
+    let fut1 = jobs.submit(addNumValues(@[1.0.float, 2.0]))
+    let fut2 = jobs.submit(addNumValues(@[3.0.float, 4.0]))
+    check retainedMemoryCount() == 2
+    let res1 = await fut1
+    let res2 = await fut2
+    check res1 == 3.0
+    check res2 == 7.0
+    check retainedMemoryCount() == 0
