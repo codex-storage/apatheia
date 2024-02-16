@@ -18,6 +18,11 @@ proc addNumValues(vals: openArray[float]): float {.asyncTask.} =
   for x in vals:
     result += x
 
+proc strCompute(val: openArray[char]): int {.asyncTask.} =
+  ## note includes null terminator!
+  return val.len()
+
+
 suite "async tests":
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
   var jobsVar = newJobQueue[float](taskpool = tp)
@@ -36,6 +41,11 @@ suite "async tests":
     let args = @[1.0, 2.0, 3.0]
     let res = await jobs.submit(addNumValues(args))
     check res == 6.0
+
+  asyncTest "test strCompute":
+    var jobs = newJobQueue[int](taskpool = tp)
+    let res = await jobs.submit(strCompute("hello world!"))
+    check res == 13 # note includes cstring null terminator
 
   asyncTest "testing openArrays":
     var jobs = newJobQueue[float](taskpool = tp)
