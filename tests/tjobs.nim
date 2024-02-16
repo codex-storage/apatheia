@@ -27,6 +27,9 @@ proc addNumValues(jobResult: JobResult[float], base: float, vals: OpenArrayHolde
     res += x
   discard jobResult.queue.send((jobResult.id, res,))
 
+proc addStrings(jobResult: JobResult[float], vals: OpenArrayHolder[string]) =
+  discard
+
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
@@ -46,3 +49,9 @@ suite "async tests":
     let res = await jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
     check res == 13.0
 
+  asyncTest "don't compile":
+    check not compiles(
+      block:
+        var jobs = newJobQueue[float](taskpool = tp)
+        let job = jobs.submit(addStrings(@["a", "b", "c"]))
+    )
