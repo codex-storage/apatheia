@@ -144,7 +144,7 @@ when isMainModule:
   import std/macros
 
   proc addNumValues(
-      jobResult: JobResult[float], base: float, vals: OpenArrayHolder[float]
+      jobResult: JobResult[float],base: float, vals: OpenArrayHolder[float]
   ) =
     os.sleep(100)
     var res = base
@@ -153,6 +153,9 @@ when isMainModule:
     discard jobResult.queue.send((jobResult.id, res))
 
   proc addStrings(jobResult: JobResult[float], vals: OpenArrayHolder[string]) =
+    discard
+
+  proc addStrings(jobResult: JobResult[float], vals: OpenArrayHolder[string], args: int, b: int) =
     discard
 
   suite "async tests":
