@@ -10,7 +10,7 @@ export jobs
 template convertParamType*[T](obj: OpenArrayHolder[T]): auto =
   static:
     echo "CONVERTPARAMTYPE:: ", $typeof(obj)
-  obj
+  obj.toOpenArray()
 
 template convertParamType*(obj: typed): auto =
   obj
@@ -45,7 +45,6 @@ macro asyncTask*(p: untyped): untyped =
     let val {.inject.} = `tcall`
     discard jobResult.queue.send((jobResult.id, val))
 
-  var asyncParams = params.copyNimTree()
   let retType =
     if not hasReturnType(params):
       ident"void"
@@ -55,8 +54,21 @@ macro asyncTask*(p: untyped): untyped =
   let jobArg = nnkIdentDefs.newTree(
     ident"jobResult", nnkBracketExpr.newTree(ident"JobResult", retType), newEmptyNode()
   )
-  asyncParams[0] = newEmptyNode()
-  asyncParams.insert(1, jobArg)
+  var asyncParams = nnkFormalParams.newTree()
+  echo "TASKER: ", asyncParams.treeRepr
+  asyncParams.add newEmptyNode()
+  asyncParams.add jobArg
+  for i, p in params[1..^1]:
+    echo "TASKER: PARAM: ", p.treeRepr
+    let pt = p[1]
+    if pt.kind == nnkBracketExpr and pt[0].repr == "openArray":
+      echo "TASKER: PARAM: ", "FOUND OPEN PARAM"
+      p[1] = nnkBracketExpr.newTree(ident"OpenArrayHolder", pt[1])
+      asyncParams.add p
+    else:
+      asyncParams.add p
+
+
   let fn = mkProc(procId, asyncParams, asyncBody)
 
   result = newStmtList()
