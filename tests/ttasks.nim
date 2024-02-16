@@ -6,7 +6,7 @@ import chronos/unittest2/asynctests
 import taskpools
 
 import apatheia/tasks
-import apatheia/memholders
+import apatheia/memretainers
 
 proc addNums(a, b: float): float {.asyncTask.} =
   os.sleep(50)
