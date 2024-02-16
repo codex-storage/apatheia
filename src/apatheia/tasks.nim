@@ -8,6 +8,24 @@ export jobs
 ## Tasks provide a convenience wrapper for using the jobs module. It also
 ## provides some extra conveniences like handling a subset of `openArray[T]`
 ## types in a safe manner using `OpenArrayHolder[T]` type.
+## 
+## The `asyncTask` macro works by creating a wrapper proc around the 
+## annotated user proc. The transformation looks similar to:
+## 
+## .. code-block::
+##      proc doHashes*(data: openArray[byte], opts: HashOptions): float {.asyncTask.} =
+##        result = 10.0
+
+## 
+## .. code-block::
+##     proc doHashesTasklet*(data: openArray[byte]; opts: HashOptions): float {.nimcall.} =
+##        result = 10.0
+##     
+##     proc doHashes*(jobResult: JobResult[float]; data: OpenArrayHolder[byte];
+##                    opts: HashOptions) {.nimcall.} =
+##       let val {.inject.} = doHashesTasklet(convertParamType(data),
+##                                            convertParamType(opts))
+##       discard jobResult.queue.send((jobResult.id, val))
 
 template convertParamType*[T](obj: OpenArrayHolder[T]): auto =
   static:
@@ -83,3 +101,4 @@ when isMainModule:
 
   proc doHashes*(data: openArray[byte], opts: HashOptions): float {.asyncTask.} =
     echo "hashing"
+    result = 10.0
