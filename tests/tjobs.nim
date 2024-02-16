@@ -8,7 +8,7 @@ import taskpools
 
 import apatheia/queues
 import apatheia/jobs
-import apatheia/memholders
+import apatheia/memretainers
 
 proc addNumsRaw(a, b: float): float =
   os.sleep(50)

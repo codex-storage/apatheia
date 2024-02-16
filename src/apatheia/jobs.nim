@@ -2,7 +2,7 @@ import std/tables
 import std/macros
 
 import ./queues
-import ./memholders
+import ./memretainers
 
 import taskpools
 import chronos
@@ -35,6 +35,8 @@ type
     data*: ptr UncheckedArray[T]
     size*: int
 
+  SupportedSeqTypes* = byte | SomeInteger | SomeFloat
+
 template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
@@ -66,7 +68,7 @@ proc createFuture*[T](jobs: JobQueue[T], name: static string): (JobResult[T], Fu
   let fut = newFuture[T](name)
   let id = fut.jobId()
   jobs.futures[id] = fut
-  trace "jobs added: ", numberJobs = jobs.futures.len()
+  trace "job added: ", numberJobs = jobs.futures.len()
   return (JobResult[T](id: id, queue: jobs.queue), fut)
 
 proc newJobQueue*[T](
@@ -79,9 +81,9 @@ proc newJobQueue*[T](
   asyncSpawn(processJobs(result))
 
 template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
-  when T is byte | SomeInteger | SomeFloat:
-    let rval = SeqHolder[T](data: exp)
-    fut.jobId().retainMemory(rval)
+  when T is SupportedSeqTypes:
+    let rval = SeqRetainer[T](data: exp)
+    retainMemory(fut.jobId(), rval)
     let expPtr = OpenArrayHolder[T](
       data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len()
     )
