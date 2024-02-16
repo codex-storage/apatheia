@@ -1,6 +1,9 @@
 
 import std/tables
 
+import ./types
+export types
+
 type
   MemHolder* = ref object of RootObj
 
@@ -12,13 +15,17 @@ type
 
 var memHolderTable = newTable[uint, seq[MemHolder]]()
 
-proc retainMemory*[T: uint](id: T, mem: MemHolder) {.gcsafe, raises: [].} =
+proc retainMemory*(id: JobId, mem: MemHolder) {.gcsafe, raises: [].} =
   {.cast(gcsafe).}:
     memHolderTable[].withValue(id, value):
       value[].add(mem)
     do:
       memHolderTable[id] = @[mem]
 
-proc releaseMemory*[T: uint](id: T) {.gcsafe, raises: [].} =
+proc releaseMemory*(id: JobId) {.gcsafe, raises: [].} =
   {.cast(gcsafe).}:
     memHolderTable.del(id)
+
+proc retainedMemoryCount*(): int {.gcsafe, raises: [].} =
+  {.cast(gcsafe).}:
+    memHolderTable.len()

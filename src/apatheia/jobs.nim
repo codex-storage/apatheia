@@ -21,7 +21,6 @@ logScope:
 ##
 
 type
-  JobId* = uint ## job id, should match `future.id()`
 
   JobQueue*[T] = ref object
     ## job queue object
