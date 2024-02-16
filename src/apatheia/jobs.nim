@@ -42,6 +42,8 @@ type
 template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
+func jobId*[T](fut: Future[T]): JobId = JobId fut.id()
+
 proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
   ## Starts a "detached" async processor for a given job queue.
   ## 
@@ -54,6 +56,7 @@ proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
     let res = await(jobs.queue.wait()).get()
     trace "got job result", jobResult = $res
     let (id, ret) = res
+    releaseMemory(id) # release any retained memory
     var fut: Future[T]
     if jobs.futures.pop(id, fut):
       fut.complete(ret)
@@ -64,7 +67,7 @@ proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
 proc createFuture*[T](jobs: JobQueue[T], name: static string): (JobResult[T], Future[T]) =
   ## Creates a future that returns the result of the associated job.
   let fut = newFuture[T](name)
-  let id = JobId fut.id()
+  let id = fut.jobId()
   jobs.futures[id] = fut
   trace "jobs added: ", numberJobs = jobs.futures.len()
   return (JobResult[T](id: id, queue: jobs.queue), fut, )
@@ -78,7 +81,7 @@ template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
   # static:
   #   echo "checkJobArgs::SEQ: ", $typeof(exp)
   let rval = SeqHolder[T](data: exp)
-  storeMemoryHolder(fut.id().JobId, rval)
+  fut.jobId().retainMemory(rval)
   let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len())
   expPtr
 
