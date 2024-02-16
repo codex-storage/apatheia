@@ -159,7 +159,7 @@ when isMainModule:
     var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
 
     asyncTest "basic openarray":
-      var # expandMacros:
+      var
         jobs = newJobQueue[float](taskpool = tp)
 
       let job = jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
@@ -168,10 +168,8 @@ when isMainModule:
       check res == 13.0
 
     asyncTest "don't compile":
-      var # expandMacros:
-        jobs = newJobQueue[float](taskpool = tp)
-
-      let job = jobs.submit(addStrings(@["a", "b", "c"]))
-      let res = await job
-
-      check res == 13.0
+      check not compiles(
+        block:
+          var jobs = newJobQueue[float](taskpool = tp)
+          let job = jobs.submit(addStrings(@["a", "b", "c"]))
+      )
