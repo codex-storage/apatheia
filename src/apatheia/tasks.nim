@@ -7,12 +7,12 @@ export jobs
 
 # TODO: make these do something useful or remove them
 
-template checkParamType*(obj: object): auto =
-  # for name, field in obj.fieldPairs():
-  #   echo "field name: ", name
+template convertParamType*[T](obj: OpenArrayHolder[T]): auto =
+  static:
+    echo "CONVERTPARAMTYPE:: ", $typeof(obj)
   obj
 
-template checkParamType*(obj: typed): auto =
+template convertParamType*(obj: typed): auto =
   obj
 
 macro asyncTask*(p: untyped): untyped =
@@ -40,7 +40,7 @@ macro asyncTask*(p: untyped): untyped =
   var asyncBody = newStmtList()
   let tcall = newCall(ident(name & "Tasklet"))
   for paramId, paramType in paramsIter(params):
-    tcall.add newCall("checkParamType", paramId)
+    tcall.add newCall("convertParamType", paramId)
   asyncBody = quote:
     let val {.inject.} = `tcall`
     discard jobResult.queue.send((jobResult.id, val))
@@ -51,6 +51,7 @@ macro asyncTask*(p: untyped): untyped =
       ident"void"
     else:
       params.getReturnType()
+
   let jobArg = nnkIdentDefs.newTree(
     ident"jobResult", nnkBracketExpr.newTree(ident"JobResult", retType), newEmptyNode()
   )
@@ -69,5 +70,5 @@ when isMainModule:
   type HashOptions* = object
     striped*: bool
 
-  proc doHashes2*(data: openArray[byte], opts: HashOptions): float {.asyncTask.} =
+  proc doHashes*(data: openArray[byte], opts: HashOptions): float {.asyncTask.} =
     echo "hashing"
