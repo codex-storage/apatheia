@@ -28,6 +28,9 @@ proc addNumValues(jobResult: JobResult[float], base: float, vals: OpenArrayHolde
     res += x
   discard jobResult.queue.send((jobResult.id, res,))
 
+proc strCompute(jobResult: JobResult[int], vals: OpenArrayHolder[char]) =
+  discard jobResult.queue.send((jobResult.id, vals.size,))
+
 proc addStrings(jobResult: JobResult[float], vals: OpenArrayHolder[string]) =
   discard
 
@@ -45,10 +48,15 @@ suite "async tests":
 
     check res == 3.0
 
-  asyncTest "testing arrays":
+  asyncTest "testing seq":
     var jobs = newJobQueue[float](taskpool = tp)
     let res = await jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
     check res == 13.0
+
+  asyncTest "testing string":
+    var jobs = newJobQueue[int](taskpool = tp)
+    let res = await jobs.submit(strCompute("hello world!"))
+    check res == 12
 
   asyncTest "testing arrays":
     var jobs = newJobQueue[float](taskpool = tp)

@@ -100,6 +100,14 @@ template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
   else:
     {.error: "unsupported sequence type for job argument: " & $typeof(seq[T]).}
 
+template checkJobArgs*(exp: string, fut: untyped): OpenArrayHolder[char] =
+    let rval = StrRetainer(data: exp)
+    retainMemory(fut.jobId(), rval)
+    let expPtr = OpenArrayHolder[char](
+      data: cast[ptr UncheckedArray[char]](unsafeAddr(rval.data[0])), size: rval.data.len()
+    )
+    expPtr
+
 template checkJobArgs*(exp: typed, fut: untyped): auto =
   exp
 

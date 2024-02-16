@@ -9,7 +9,7 @@ type
   SeqRetainer*[T] = ref object of Retainer
     data*: seq[T]
 
-  StrRetainer*[T] = ref object of Retainer
+  StrRetainer* = ref object of Retainer
     data*: string
 
 var memoryRetainerTable = newTable[uint, seq[Retainer]]()
