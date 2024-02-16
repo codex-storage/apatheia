@@ -15,7 +15,7 @@ export jobs
 ## .. code-block::
 ##      proc doHashes*(data: openArray[byte], opts: HashOptions): float {.asyncTask.} =
 ##        result = 10.0
-
+##
 ## 
 ## .. code-block::
 ##     proc doHashesTasklet*(data: openArray[byte]; opts: HashOptions): float {.nimcall.} =
@@ -26,7 +26,11 @@ export jobs
 ##       let val {.inject.} = doHashesTasklet(convertParamType(data),
 ##                                            convertParamType(opts))
 ##       discard jobResult.queue.send((jobResult.id, val))
-
+## 
+## Paramters with type of `openArray[T]` have special support and are converted
+## into the `OpenArrayHolder[T]` type from the jobs module. See the jobs module
+## for more information.
+## 
 template convertParamType*[T](obj: OpenArrayHolder[T]): auto =
   static:
     echo "CONVERTPARAMTYPE:: ", $typeof(obj)

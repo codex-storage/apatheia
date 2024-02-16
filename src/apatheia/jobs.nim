@@ -18,7 +18,18 @@ logScope:
 ## This module provides a simple way to submit jobs to taskpools
 ## and getting a result returned via an async future.
 ## 
-##
+## Any compatible arguments of `seq[T]` or `string` args passed
+## via the `submit` macro will be converted into the special `OpenArrayHolder[T]` type.
+## The `submit` macro converts these arguments in this object and retains the 
+## memory associated with the original `seq[T]` or `string` object.
+## This greatly simplifies the passing of these these types in `refc`.
+## 
+## Note, for `arc` or `orc` GC's this setup will be replaced with a move operation in the future.
+## These GC's also allow greater support for moving GC types across thread boundaries.
+## 
+## Currently this module limits support for GC types to ensure `refc` safety.
+## 
+
 
 type
   JobQueue*[T] = ref object ## job queue object
