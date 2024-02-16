@@ -5,7 +5,9 @@ import macroutils
 import jobs
 export jobs
 
-# TODO: make these do something useful or remove them
+## Tasks provide a convenience wrapper for using the jobs module. It also
+## provides some extra conveniences like handling a subset of `openArray[T]`
+## types in a safe manner using `OpenArrayHolder[T]` type.
 
 template convertParamType*[T](obj: OpenArrayHolder[T]): auto =
   static:
