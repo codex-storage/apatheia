@@ -55,14 +55,12 @@ macro asyncTask*(p: untyped): untyped =
     ident"jobResult", nnkBracketExpr.newTree(ident"JobResult", retType), newEmptyNode()
   )
   var asyncParams = nnkFormalParams.newTree()
-  echo "TASKER: ", asyncParams.treeRepr
   asyncParams.add newEmptyNode()
   asyncParams.add jobArg
   for i, p in params[1..^1]:
-    echo "TASKER: PARAM: ", p.treeRepr
     let pt = p[1]
     if pt.kind == nnkBracketExpr and pt[0].repr == "openArray":
-      echo "TASKER: PARAM: ", "FOUND OPEN PARAM"
+      # special case openArray to support special OpenArrayHolder from jobs module
       p[1] = nnkBracketExpr.newTree(ident"OpenArrayHolder", pt[1])
       asyncParams.add p
     else:
