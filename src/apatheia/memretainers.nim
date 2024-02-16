@@ -12,7 +12,6 @@ type
   StrRetainer*[T] = ref object of Retainer
     data*: string
 
-
 var memoryRetainerTable = newTable[uint, seq[Retainer]]()
 
 proc retainMemory*(id: JobId, mem: Retainer) {.gcsafe, raises: [].} =

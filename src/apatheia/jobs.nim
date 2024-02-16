@@ -43,11 +43,11 @@ template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
 func jobId*[T](fut: Future[T]): JobId =
   JobId fut.id()
 
-proc processJobs*[T](jobs: JobQueue[T]) {.async, raises: [].} =
+proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
   ## Starts a "detached" async processor for a given job queue.
   ## 
   ## This processor waits for events from the queue in the JobQueue
-  ## and complete the associated futures.
+  ## and completes the associated future.
 
   const tn: string = $(JobQueue[T])
   info "Processing jobs in job queue for type ", type = tn
@@ -55,8 +55,7 @@ proc processJobs*[T](jobs: JobQueue[T]) {.async, raises: [].} =
     let (id, ret) = await(jobs.queue.wait()).get()
     trace "got job result", jobId = id
     releaseMemory(id) # always release any retained memory
-    var fut: Future[T]
-    if jobs.futures.pop(id, fut):
+    if (var fut: Future[T]; jobs.futures.pop(id, fut)):
       if not fut.finished():
         fut.complete(ret)
     else:
