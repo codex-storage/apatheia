@@ -27,7 +27,7 @@ type
     taskpool*: Taskpool
     running*: bool
 
-  JobResult*[T] = object ## hold a job result to be returned by jobs
+  JobResult*[T] = object ## hold the result of a job after it finishes
     id*: JobId
     queue*: SignalQueue[(JobId, T)]
 
@@ -103,14 +103,10 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   var argids = newSeq[NimNode]()
   var letargs = nnkLetSection.newTree()
   for i, p in exp[1 ..^ 1]:
-    echo "CHECK ARGS: ", p.treeRepr
     let id = ident "arg" & $i
     argids.add(id)
     let pn = nnkCall.newTree(ident"checkJobArgs", p, `futName`)
     letargs.add nnkIdentDefs.newTree(id, newEmptyNode(), pn)
-    # fncall.add(nnkCall.newTree(ident"checkJobArgs", p, `futName`))
-  echo "\nSUBMIT: ARGS: LET:\n", letargs.repr
-  echo ""
 
   var fncall = nnkCall.newTree(exp[0])
   fncall.add(jobRes)
@@ -141,7 +137,6 @@ when isMainModule:
   import os
   import chronos/threadsync
   import chronos/unittest2/asynctests
-  import std/macros
 
   proc addNumValues(
       jobResult: JobResult[float], base: float, vals: OpenArrayHolder[float]
