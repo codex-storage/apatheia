@@ -57,7 +57,7 @@ macro asyncTask*(p: untyped): untyped =
   var asyncParams = nnkFormalParams.newTree()
   asyncParams.add newEmptyNode()
   asyncParams.add jobArg
-  for i, p in params[1..^1]:
+  for i, p in params[1 ..^ 1]:
     let pt = p[1]
     if pt.kind == nnkBracketExpr and pt[0].repr == "openArray":
       # special case openArray to support special OpenArrayHolder from jobs module
@@ -65,7 +65,6 @@ macro asyncTask*(p: untyped): untyped =
       asyncParams.add p
     else:
       asyncParams.add p
-
 
   let fn = mkProc(procId, asyncParams, asyncBody)
 
