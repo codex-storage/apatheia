@@ -77,17 +77,16 @@ proc newJobQueue*[T](maxItems: int = 0, taskpool: Taskpool = Taskpool.new()): Jo
   asyncSpawn(processJobs(result))
 
 template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
-  # static:
-  #   echo "checkJobArgs::SEQ: ", $typeof(exp)
-  let rval = SeqHolder[T](data: exp)
-  fut.jobId().retainMemory(rval)
-  let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len())
-  expPtr
+  when T is byte | SomeInteger | SomeFloat:
+    let rval = SeqHolder[T](data: exp)
+    fut.jobId().retainMemory(rval)
+    let expPtr = OpenArrayHolder[T](data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len())
+    expPtr
+  else:
+    {.error: "unsupported sequence type for job argument: " & $typeof(seq[T]).}
 
 
 template checkJobArgs*(exp: typed, fut: untyped): auto =
-  # static:
-  #   echo "checkJobArgs:: ", $typeof(exp)
   exp
 
 
@@ -115,9 +114,6 @@ macro submitMacro(tp: untyped, jobs: untyped, exp: untyped): untyped =
   fncall.add(jobRes)
   for p in argids:
     fncall.add(p)
-  # for p in exp[1..^1]:
-  #   echo "CHECK ARGS: ", p.treeRepr
-  #   fncall.add(nnkCall.newTree(ident"checkJobArgs", p, `futName`))
 
   result = quote do:
     block:
@@ -149,15 +145,27 @@ when isMainModule:
       res += x
     discard jobResult.queue.send((jobResult.id, res,))
 
+  proc addStrings(jobResult: JobResult[float], vals: OpenArrayHolder[string]) =
+    discard
+
   suite "async tests":
 
     var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
 
-    asyncTest "test":
+    asyncTest "basic openarray":
       # expandMacros:
         var jobs = newJobQueue[float](taskpool = tp)
 
         let job = jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
+        let res = await job
+
+        check res == 13.0
+
+    asyncTest "don't compile":
+      # expandMacros:
+        var jobs = newJobQueue[float](taskpool = tp)
+
+        let job = jobs.submit(addStrings(@["a", "b", "c"]))
         let res = await job
 
         check res == 13.0
