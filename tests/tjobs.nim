@@ -8,6 +8,7 @@ import taskpools
 
 import apatheia/queues
 import apatheia/jobs
+import apatheia/memholders
 
 proc addNumsRaw(a, b: float): float =
   os.sleep(50)
@@ -48,6 +49,17 @@ suite "async tests":
     var jobs = newJobQueue[float](taskpool = tp)
     let res = await jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
     check res == 13.0
+
+  asyncTest "testing arrays":
+    var jobs = newJobQueue[float](taskpool = tp)
+    let fut1 = jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
+    let fut2 = jobs.submit(addNumValues(20.0, @[3.0.float, 4.0]))
+    check retainedMemoryCount() == 2
+    let res1 = await fut1
+    let res2 = await fut2
+    check res1 == 13.0
+    check res2 == 27.0
+    check retainedMemoryCount() == 0
 
   asyncTest "don't compile":
     check not compiles(
