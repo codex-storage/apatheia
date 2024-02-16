@@ -1,4 +1,3 @@
-
 import std/[macros, strutils]
 
 import macroutils
@@ -30,30 +29,30 @@ macro asyncTask*(p: untyped): untyped =
     # pragmas = p[4]
     body = p[6]
     name = repr(procId).strip(false, true, {'*'})
-  
+
   if not hasReturnType(params):
     error("tasklet definition must have return type", p)
 
   # setup inner tasklet proc
-  let tp = mkProc(procId.procIdentAppend("Tasklet"),
-                  params, body)
+  let tp = mkProc(procId.procIdentAppend("Tasklet"), params, body)
 
   # setup async wrapper code
   var asyncBody = newStmtList()
   let tcall = newCall(ident(name & "Tasklet"))
   for paramId, paramType in paramsIter(params):
     tcall.add newCall("checkParamType", paramId)
-  asyncBody = quote do:
+  asyncBody = quote:
     let val {.inject.} = `tcall`
-    discard jobResult.queue.send((jobResult.id, val,))
+    discard jobResult.queue.send((jobResult.id, val))
 
   var asyncParams = params.copyNimTree()
-  let retType = if not hasReturnType(params): ident"void"
-                else: params.getReturnType()
+  let retType =
+    if not hasReturnType(params):
+      ident"void"
+    else:
+      params.getReturnType()
   let jobArg = nnkIdentDefs.newTree(
-    ident"jobResult",
-    nnkBracketExpr.newTree(ident"JobResult", retType),
-    newEmptyNode()
+    ident"jobResult", nnkBracketExpr.newTree(ident"JobResult", retType), newEmptyNode()
   )
   asyncParams[0] = newEmptyNode()
   asyncParams.insert(1, jobArg)
@@ -67,13 +66,8 @@ macro asyncTask*(p: untyped): untyped =
     echo "asyncTask:body:\n", result.repr
 
 when isMainModule:
+  type HashOptions* = object
+    striped*: bool
 
-  type
-    HashOptions* = object
-      striped*: bool
-
-  proc doHashes2*(data: openArray[byte],
-                  opts: HashOptions): float {.asyncTask.} =
+  proc doHashes2*(data: openArray[byte], opts: HashOptions): float {.asyncTask.} =
     echo "hashing"
-
-

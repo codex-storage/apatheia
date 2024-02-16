@@ -10,23 +10,23 @@ export options
 export threadsync
 export chronos
 
-type
-  ChanPtr[T] = ptr Channel[T]
+type ChanPtr[T] = ptr Channel[T]
 
 proc allocSharedChannel[T](): ChanPtr[T] =
   cast[ChanPtr[T]](allocShared0(sizeof(Channel[T])))
 
-type
-  SignalQueue*[T] = object
-    signal: ThreadSignalPtr
-    chan*: ChanPtr[T]
+type SignalQueue*[T] = object
+  signal: ThreadSignalPtr
+  chan*: ChanPtr[T]
 
 proc dispose*[T](val: SignalQueue[T]) =
   ## Call to properly dispose of a SignalQueue.
   deallocShared(val.chan)
   discard val.signal.close()
 
-proc newSignalQueue*[T](maxItems: int = 0): SignalQueue[T] {.raises: [ApatheiaSignalErr].} =
+proc newSignalQueue*[T](
+    maxItems: int = 0
+): SignalQueue[T] {.raises: [ApatheiaSignalErr].} =
   ## Create a signal queue compatible with Chronos async.
   let res = ThreadSignalPtr.new()
   if res.isErr():

@@ -159,8 +159,7 @@ when isMainModule:
     var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
 
     asyncTest "basic openarray":
-      var
-        jobs = newJobQueue[float](taskpool = tp)
+      var jobs = newJobQueue[float](taskpool = tp)
 
       let job = jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
       let res = await job
