@@ -13,3 +13,4 @@ requires "threading"
 requires "taskpools >= 0.0.5"
 requires "chronicles"
 
+include "build.nims"
