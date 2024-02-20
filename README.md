@@ -5,6 +5,8 @@
 
 The goal of the apatheia library is to provide a painless, suffering free way of using multi-threading with async in Nim. 
 
+It's essentially just a wrapper around best patterns for integrating nim-taskpools with Chronos multithread signalling.
+
 The main modules are:
 - queues - queues with support for async signals
 - jobs - macro and utilities for submitting jobs to a taskpool
