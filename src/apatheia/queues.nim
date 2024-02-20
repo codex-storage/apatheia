@@ -12,8 +12,8 @@ export chronos
 
 type ChanPtr[T] = ptr Channel[T]
 
-proc allocSharedChannel[T](): ChanPtr[T] =
-  cast[ChanPtr[T]](allocShared0(sizeof(Channel[T])))
+proc allocPtr[T](): ptr T =
+  cast[ptr T](allocShared0(sizeof(T)))
 
 type SignalQueue*[T] = object
   signal: ThreadSignalPtr
@@ -32,7 +32,7 @@ proc newSignalQueue*[T](
   if res.isErr():
     raise newException(ApatheiaSignalErr, res.error())
   result.signal = res.get()
-  result.chan = allocSharedChannel[T]()
+  result.chan = allocPtr[Channel[T]]()
   result.chan[].open(maxItems)
 
 proc send*[T](c: SignalQueue[T], msg: sink T): Result[void, string] {.raises: [].} =
