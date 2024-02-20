@@ -10,14 +10,9 @@ export options
 export threadsync
 export chronos
 
-type ChanPtr[T] = ptr Channel[T]
-
-proc allocPtr[T](): ptr T =
-  cast[ptr T](allocShared0(sizeof(T)))
-
 type SignalQueue*[T] = object
   signal: ThreadSignalPtr
-  chan*: ChanPtr[T]
+  chan*: ptr Channel[T]
 
 proc dispose*[T](val: SignalQueue[T]) =
   ## Call to properly dispose of a SignalQueue.
@@ -32,7 +27,7 @@ proc newSignalQueue*[T](
   if res.isErr():
     raise newException(ApatheiaSignalErr, res.error())
   result.signal = res.get()
-  result.chan = allocPtr[Channel[T]]()
+  result.chan = cast[ptr Channel[T]](allocShared0(sizeof(Channel[T])))
   result.chan[].open(maxItems)
 
 proc send*[T](c: SignalQueue[T], msg: sink T): Result[void, string] {.raises: [].} =
