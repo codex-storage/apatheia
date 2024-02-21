@@ -34,6 +34,17 @@ proc strCompute(jobResult: JobResult[int], vals: OpenArrayHolder[char]) =
 proc addStrings(jobResult: JobResult[float], vals: OpenArrayHolder[string]) =
   discard
 
+proc cancelTest(jobResult: JobResult[float], base: float, vals: OpenArrayHolder[float]) =
+  os.sleep(300)
+  if jobResult.cancelled():
+    discard
+    # discard jobResult.queue.send((jobResult.id, res,))
+
+  var res = base
+  for x in vals.toOpenArray():
+    res += x
+  discard jobResult.queue.send((jobResult.id, res,))
+
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
@@ -75,3 +86,8 @@ suite "async tests":
         var jobs = newJobQueue[float](taskpool = tp)
         let job = jobs.submit(addStrings(@["a", "b", "c"]))
     )
+
+  asyncTest "testing cancel":
+    var jobs = newJobQueue[float](taskpool = tp)
+    let res = await jobs.submit(addNumValues(10.0, @[1.0.float, 2.0]))
+    check res == 13.0

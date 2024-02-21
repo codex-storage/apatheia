@@ -9,7 +9,7 @@ srcDir        = "src"
 # Dependencies
 
 requires "chronos >= 4.0.0"
-requires "threading"
+requires "threading#head"
 requires "taskpools >= 0.0.5"
 requires "chronicles"
 

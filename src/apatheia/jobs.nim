@@ -61,6 +61,11 @@ template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
 func jobId*[T](fut: Future[T]): JobId =
   JobId fut.id()
 
+proc cancelled*[T](jobResult: JobResult[T]): bool =
+  # acquire jobResult.flags[].lock
+  # result = jobResult.flags[].isCancelled
+  discard
+
 proc processJobs*[T](jobs: JobQueue[T]) {.async.} =
   ## Starts a "detached" async processor for a given job queue.
   ## 
@@ -87,6 +92,7 @@ proc createFuture*[T](jobs: JobQueue[T], name: static string): (JobResult[T], Fu
   let fut = newFuture[T](name)
   let id = fut.jobId()
   let flags = newSharedPtr(JobFlags)
+  flags[].lock.initLock()
   jobs.futures[id] = (fut, flags)
   trace "job added: ", numberJobs = jobs.futures.len()
   return (JobResult[T](id: id, queue: jobs.queue, flags: flags), fut)
