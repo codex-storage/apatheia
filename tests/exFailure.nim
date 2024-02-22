@@ -14,7 +14,7 @@ type
     size*: int
 
   DataObj = ref object
-    holder: Seq[char]
+    mockSeq: Seq[char]
 
 template toOpenArray*[T](arr: Seq[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
@@ -28,21 +28,24 @@ proc worker(data: ptr Seq[char], queue: SignalQueue[int]) =
 
 proc finalizer(obj: DataObj) =
   echo "FINALIZE!!"
-  obj.holder.data.dealloc()
-  obj.holder.data = nil
+  obj.mockSeq.data.dealloc()
+  obj.mockSeq.data = nil
+
+proc initMockSeq(msg: string): Seq[char] =
+  result.data = cast[ptr UncheckedArray[char]](alloc0(13))
+  for i, c in msg:
+    result.data[i] = c
+  result.size = 12
 
 proc runTest(tp: TaskPool, queue: SignalQueue[int]) {.async.} =
   ## init
   var obj: DataObj
   new(obj, finalizer)
   
-  obj.holder.data = cast[ptr UncheckedArray[char]](alloc0(13))
-  for i, c in "hello world!":
-    obj.holder.data[i] = c
-  obj.holder.size = 12
+  obj.mockSeq = initMockSeq("hello world!")
 
   echo "spawn worker"
-  tp.spawn worker(addr obj.holder, queue)
+  tp.spawn worker(addr obj.mockSeq, queue)
 
   let res =
     await wait(queue).wait(100.milliseconds)
