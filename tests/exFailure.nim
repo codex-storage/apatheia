@@ -44,6 +44,7 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
 
   ## adding fut.wait(100.milliseconds) creates memory issue
   await wait(sig).wait(100.milliseconds)
+  ## just doing the wait is fine:
   # await wait(sig)
 
 suite "async tests":
