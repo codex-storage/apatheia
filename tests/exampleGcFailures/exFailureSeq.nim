@@ -30,7 +30,7 @@ proc toSeqDataPtr*[T](data: seq[T]): SeqDataPtr[T] =
     )
 
 proc worker(data: SeqDataPtr[char], sig: ThreadSignalPtr) =
-  os.sleep(300)
+  os.sleep(1_0)
   echo "running worker: "
   echo "worker: ", data.toOpenArray()
   for i, c in data.toOpenArray():
@@ -41,22 +41,23 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   ## init
   var obj = "hello world!".toSeq()
 
-  echo "spawn worker"
+  # echo "spawn worker"
   tp.spawn worker(obj.toSeqDataPtr(), sig)
 
   ## adding fut.wait(100.milliseconds) creates memory issue
-  await wait(sig).wait(10.milliseconds)
+  await wait(sig).wait(1.milliseconds)
   ## just doing the wait is fine:
   # await wait(sig)
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
-  for i in 1..10_000:
+  for i in 1..30_000:
     try:
       await runTest(tp, sig)
-      os.sleep(200)
     except AsyncTimeoutError:
-      echo "looping..."
-      GC_fullCollect()
+      # os.sleep(1)
+      # echo "looping..."
+      # GC_fullCollect()
+      discard
 
 suite "async tests":
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
@@ -64,3 +65,4 @@ suite "async tests":
 
   asyncTest "test":
     await runTests(tp, sig)
+    os.sleep(10_000)
