@@ -19,11 +19,6 @@ type
 template toOpenArray*[T](arr: Seq[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
-proc toArrayHolder*[T](data: seq[T]): Seq[T] =
-    Seq[T](
-      data: cast[ptr UncheckedArray[T]](unsafeAddr(data[0])), size: data.len()
-    )
-
 proc worker(data: ptr Seq[char], queue: SignalQueue[int]) =
   os.sleep(1_000)
   assert data[].data != nil
