@@ -17,19 +17,19 @@ import taskpools
 ## 
 
 type
-  Seq*[T] = object
+  SeqDataPtr*[T] = object
     data*: ptr UncheckedArray[T]
     size*: int
 
-template toOpenArray*[T](arr: Seq[T]): auto =
+template toOpenArray*[T](arr: SeqDataPtr[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
-proc toArrayHolder*[T](data: seq[T]): Seq[T] =
-    Seq[T](
+proc toArrayHolder*[T](data: seq[T]): SeqDataPtr[T] =
+    SeqDataPtr[T](
       data: cast[ptr UncheckedArray[T]](unsafeAddr(data[0])), size: data.len()
     )
 
-proc worker(data: Seq[char], sig: ThreadSignalPtr) =
+proc worker(data: SeqDataPtr[char], sig: ThreadSignalPtr) =
   os.sleep(300)
   echo "running worker: "
   echo "worker: ", data.toOpenArray()
@@ -39,7 +39,7 @@ proc worker(data: Seq[char], sig: ThreadSignalPtr) =
 
 proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   ## init
-  var obj = "hello world!".toSeq()
+  var obj = "hello world!".toSeqDataPtr()
 
   echo "spawn worker"
   tp.spawn worker(obj.toArrayHolder(), sig)
