@@ -11,24 +11,26 @@ import apatheia/jobs
 
 type
   DataObj = ref object
-    data: seq[char]
+    holder: OpenArrayHolder[char]
 
-proc worker(data: OpenArrayHolder[char], queue: SignalQueue[int]) =
+proc worker(data: ptr OpenArrayHolder[char], queue: SignalQueue[int]) =
   os.sleep(1_000)
-  echo "worker: ", data.toOpenArray()
-  discard queue.send(data.toOpenArray().len())
+  echo "worker: ", data[].toOpenArray()
+  discard queue.send(data[].toOpenArray().len())
 
 proc finalizer(obj: DataObj) =
   echo "FINALIZE!!"
+  obj.holder.data = nil
 
 proc runTest(tp: TaskPool, queue: SignalQueue[int]) {.async.} =
   ## init
   var obj: DataObj 
   new(obj, finalizer)
-  obj.data = "hello world!".toSeq
+  let data = "hello world!".toSeq
+  obj.holder = data.toArrayHolder()
 
   echo "spawn worker"
-  tp.spawn worker(toArrayHolder(obj.data), queue)
+  tp.spawn worker(addr obj.holder, queue)
 
   let res =
     await wait(queue).wait(100.milliseconds)
