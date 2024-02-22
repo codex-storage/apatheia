@@ -7,11 +7,21 @@ import chronos/unittest2/asynctests
 import taskpools
 
 import apatheia/queues
-import apatheia/jobs
 
 type
+  OpenArrayHolder*[T] = object
+    data*: ptr UncheckedArray[T]
+    size*: int
   DataObj = ref object
     holder: OpenArrayHolder[char]
+
+template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
+  system.toOpenArray(arr.data, 0, arr.size)
+
+proc toArrayHolder*[T](data: seq[T]): OpenArrayHolder[T] =
+    OpenArrayHolder[T](
+      data: cast[ptr UncheckedArray[T]](unsafeAddr(data[0])), size: data.len()
+    )
 
 proc worker(data: ptr OpenArrayHolder[char], queue: SignalQueue[int]) =
   os.sleep(1_000)
