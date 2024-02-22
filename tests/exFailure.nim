@@ -8,10 +8,29 @@ import taskpools
 
 import apatheia/queues
 
+type
+  DataObj = ref object
+    data: seq[char]
+
 proc worker(data: seq[char], queue: SignalQueue[int]) =
-  os.sleep(50)
+  os.sleep(5000)
   echo "worker: ", data
   discard queue.send(data.len())
+
+proc finalizer(obj: DataObj) =
+  echo "FINALIZE!!"
+
+proc runTest(tp: TaskPool, queue: SignalQueue[int]) {.async.} =
+  ## init
+  var data = "hello world!".toSeq
+  var obj: DataObj 
+  new(obj, finalizer)
+
+  echo "spawn worker"
+  tp.spawn worker(data, queue)
+
+  let res = await wait(queue)
+  check res.get() == 12
 
 suite "async tests":
 
@@ -20,11 +39,8 @@ suite "async tests":
 
   asyncTest "test":
 
-    ## init
-    var data = "hello world!".toSeq
-    tp.spawn worker(data, queue)
+    await runTest(tp, queue)
+    GC_fullCollect()
 
-    let res = await wait(queue)
-    check res.get() == 12
 
 
