@@ -19,12 +19,12 @@ type
 template toOpenArray*[T](arr: Seq[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
-proc worker(data: ptr Seq[char], queue: SignalQueue[int]) =
+proc worker(data: ptr Seq[char], sig: ThreadSignalPtr) =
   os.sleep(1_000)
   echo "running worker: "
   assert data[].data != nil
   echo "worker: ", data[].toOpenArray()
-  discard queue.send(data[].toOpenArray().len())
+  discard sig.fireSync()
 
 proc finalizer(obj: DataObj) =
   echo "FINALIZE!!"
@@ -37,29 +37,26 @@ proc initMockSeq(msg: string): Seq[char] =
     result.data[i] = c
   result.size = 12
 
-proc runTest(tp: TaskPool, queue: SignalQueue[int]) {.async.} =
+proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   ## init
   var obj: DataObj
-  new(obj, finalizer)
-  
+  obj.new(finalizer)
   obj.mockSeq = initMockSeq("hello world!")
 
   echo "spawn worker"
-  tp.spawn worker(addr obj.mockSeq, queue)
+  tp.spawn worker(addr obj.mockSeq, sig)
 
-  let res =
-    await wait(queue).wait(100.milliseconds)
-  check res.get() == 12
+  await wait(sig).wait(100.milliseconds)
 
 suite "async tests":
 
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
-  var queue = newSignalQueue[int]()
+  let sig = ThreadSignalPtr.new().get()
 
   asyncTest "test":
 
     try:
-      await runTest(tp, queue)
+      await runTest(tp, sig)
     except AsyncTimeoutError:
       echo "Run GC"
       GC_fullCollect()
