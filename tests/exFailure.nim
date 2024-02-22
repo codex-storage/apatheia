@@ -7,6 +7,7 @@ import chronos/unittest2/asynctests
 import taskpools
 
 import apatheia/queues
+import apatheia/jobs
 
 type
   DataObj = ref object
@@ -14,8 +15,8 @@ type
 
 proc worker(data: OpenArrayHolder[char], queue: SignalQueue[int]) =
   os.sleep(1_000)
-  echo "worker: ", data
-  discard queue.send(data.len())
+  echo "worker: ", data.toOpenArray()
+  discard queue.send(data.toOpenArray().len())
 
 proc finalizer(obj: DataObj) =
   echo "FINALIZE!!"
@@ -27,7 +28,7 @@ proc runTest(tp: TaskPool, queue: SignalQueue[int]) {.async.} =
   obj.data = "hello world!".toSeq
 
   echo "spawn worker"
-  tp.spawn worker(obj.data, queue)
+  tp.spawn worker(toArrayHolder(obj.data), queue)
 
   let res =
     await wait(queue).wait(100.milliseconds)
