@@ -5,11 +5,21 @@ import chronos/threadsync
 import chronos/unittest2/asynctests
 import taskpools
 
+## create a probablistically likely failure of 
+## using sequence memory from another thread
+## with refc. 
+## 
+## However, unlike `exFailure.nim`, this can take
+## a while to run.
+## 
+## It may not always produce an error either, but
+## generally does so in a few seconds of running.
+## 
+
 type
   Seq*[T] = object
     data*: ptr UncheckedArray[T]
     size*: int
-
 
 template toOpenArray*[T](arr: Seq[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
@@ -20,7 +30,7 @@ proc toArrayHolder*[T](data: seq[T]): Seq[T] =
     )
 
 proc worker(data: Seq[char], sig: ThreadSignalPtr) =
-  os.sleep(100)
+  os.sleep(300)
   echo "running worker: "
   echo "worker: ", data.toOpenArray()
   for i, c in data.toOpenArray():

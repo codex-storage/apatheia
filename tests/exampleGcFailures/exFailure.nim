@@ -4,6 +4,14 @@ import chronos/threadsync
 import chronos/unittest2/asynctests
 import taskpools
 
+## This example mocks up a sequence and uses
+## a finalizer and GC_fullCollect to more
+## deterministically create a memory error.
+## 
+## see `exFailureSeq.nim` for a probablisitc based
+## example using a real seq object.
+## 
+
 type
   Seq*[T] = object
     data*: ptr UncheckedArray[T]
