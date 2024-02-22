@@ -33,7 +33,7 @@ proc finalizer(obj: DataObj) =
 
 proc runTest(tp: TaskPool, queue: SignalQueue[int]) {.async.} =
   ## init
-  var obj: DataObj 
+  var obj: DataObj
   new(obj, finalizer)
   
   obj.holder.data = cast[ptr UncheckedArray[char]](alloc0(13))
