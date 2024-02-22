@@ -9,21 +9,22 @@ import taskpools
 import apatheia/queues
 
 type
-  OpenArrayHolder*[T] = object
+  Seq*[T] = object
     data*: ptr UncheckedArray[T]
     size*: int
-  DataObj = ref object
-    holder: OpenArrayHolder[char]
 
-template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
+  DataObj = ref object
+    holder: Seq[char]
+
+template toOpenArray*[T](arr: Seq[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
-proc toArrayHolder*[T](data: seq[T]): OpenArrayHolder[T] =
-    OpenArrayHolder[T](
+proc toArrayHolder*[T](data: seq[T]): Seq[T] =
+    Seq[T](
       data: cast[ptr UncheckedArray[T]](unsafeAddr(data[0])), size: data.len()
     )
 
-proc worker(data: ptr OpenArrayHolder[char], queue: SignalQueue[int]) =
+proc worker(data: ptr Seq[char], queue: SignalQueue[int]) =
   os.sleep(1_000)
   assert data[].data != nil
   echo "worker: ", data[].toOpenArray()
