@@ -1,6 +1,4 @@
 import std/os
-import std/sequtils
-
 import chronos
 import chronos/threadsync
 import chronos/unittest2/asynctests
