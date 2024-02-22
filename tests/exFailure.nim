@@ -20,14 +20,18 @@ proc worker(data: ptr OpenArrayHolder[char], queue: SignalQueue[int]) =
 
 proc finalizer(obj: DataObj) =
   echo "FINALIZE!!"
-  obj.holder.data = nil
+  obj.holder.data.dealloc()
+  # obj.holder.data = nil
 
 proc runTest(tp: TaskPool, queue: SignalQueue[int]) {.async.} =
   ## init
   var obj: DataObj 
   new(obj, finalizer)
-  let data = "hello world!".toSeq
-  obj.holder = data.toArrayHolder()
+  
+  obj.holder.data = cast[ptr UncheckedArray[char]](alloc0(13))
+  for i, c in "hello world!":
+    obj.holder.data[i] = c
+  obj.holder.size = 12
 
   echo "spawn worker"
   tp.spawn worker(addr obj.holder, queue)
