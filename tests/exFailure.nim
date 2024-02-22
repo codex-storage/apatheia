@@ -51,12 +51,10 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   # await wait(sig)
 
 suite "async tests":
-
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
   let sig = ThreadSignalPtr.new().get()
 
   asyncTest "test":
-
     try:
       await runTest(tp, sig)
     except AsyncTimeoutError:
@@ -64,6 +62,3 @@ suite "async tests":
       GC_fullCollect()
       os.sleep(2_000)
       echo "Done"
-
-
-
