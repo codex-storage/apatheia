@@ -30,7 +30,7 @@ proc toSeqDataPtr*[T](data: seq[T]): SeqDataPtr[T] =
     )
 
 proc worker(data: SeqDataPtr[char], sig: ThreadSignalPtr) =
-  os.sleep(1_0)
+  os.sleep(10)
   echo "running worker: "
   echo "worker: ", data.toOpenArray()
   for i, c in data.toOpenArray():
