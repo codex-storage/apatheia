@@ -21,6 +21,7 @@ template toOpenArray*[T](arr: Seq[T]): auto =
 
 proc worker(data: ptr Seq[char], queue: SignalQueue[int]) =
   os.sleep(1_000)
+  echo "running worker: "
   assert data[].data != nil
   echo "worker: ", data[].toOpenArray()
   discard queue.send(data[].toOpenArray().len())
