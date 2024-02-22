@@ -15,13 +15,14 @@ type
 
 proc worker(data: ptr OpenArrayHolder[char], queue: SignalQueue[int]) =
   os.sleep(1_000)
+  assert data[].data != nil
   echo "worker: ", data[].toOpenArray()
   discard queue.send(data[].toOpenArray().len())
 
 proc finalizer(obj: DataObj) =
   echo "FINALIZE!!"
   obj.holder.data.dealloc()
-  # obj.holder.data = nil
+  obj.holder.data = nil
 
 proc runTest(tp: TaskPool, queue: SignalQueue[int]) {.async.} =
   ## init
@@ -49,7 +50,7 @@ suite "async tests":
 
     try:
       await runTest(tp, queue)
-    except AsyncTimeoutError as err:
+    except AsyncTimeoutError:
       echo "Run GC"
       GC_fullCollect()
       os.sleep(2_000)
