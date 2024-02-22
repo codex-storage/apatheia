@@ -6,8 +6,6 @@ import chronos/threadsync
 import chronos/unittest2/asynctests
 import taskpools
 
-import apatheia/queues
-
 type
   Seq*[T] = object
     data*: ptr UncheckedArray[T]
