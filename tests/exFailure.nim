@@ -24,8 +24,7 @@ suite "async tests":
     var data = "hello world!".toSeq
     tp.spawn worker(data, queue)
 
-    let res = await wait(queue).wait(1500.milliseconds)
-
+    let res = await wait(queue)
     check res.get() == 12
 
 
