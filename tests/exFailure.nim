@@ -27,7 +27,7 @@ proc worker(data: ptr Seq[char], sig: ThreadSignalPtr) =
   discard sig.fireSync()
 
 proc finalizer(obj: DataObj) =
-  echo "FINALIZE!!"
+  echo "finalize DataObj and freeing mockSeq"
   obj.mockSeq.data.dealloc()
   obj.mockSeq.data = nil
 
@@ -46,7 +46,9 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   echo "spawn worker"
   tp.spawn worker(addr obj.mockSeq, sig)
 
+  ## adding fut.wait(100.milliseconds) creates memory issue
   await wait(sig).wait(100.milliseconds)
+  # await wait(sig)
 
 suite "async tests":
 
