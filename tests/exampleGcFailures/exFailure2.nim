@@ -24,7 +24,7 @@ template toOpenArray*[T](arr: Seq[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
 proc worker(data: ptr Seq[char], sig: ThreadSignalPtr) =
-  os.sleep(1_000)
+  os.sleep(5_000)
   echo "running worker: "
   assert data[].data != nil
   echo "worker: ", data[].toOpenArray()
@@ -51,9 +51,17 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   tp.spawn worker(addr obj.mockSeq, sig)
 
   ## adding fut.wait(100.milliseconds) creates memory issue
-  await wait(sig)
+  try:
+    await wait(sig)
+    echo "runTest got sig"
+  finally:
+    echo "runTest done"
   ## just doing the wait is fine:
   # await wait(sig)
+
+proc doFail() {.async.} =
+  await sleepAsync(10.milliseconds)
+  raise newException(CatchableError, "error")
 
 suite "async tests":
   var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
@@ -61,9 +69,13 @@ suite "async tests":
 
   asyncTest "test":
     try:
-      await runTest(tp, sig).wait(100.milliseconds)
-    except AsyncTimeoutError:
+      await allFutures(
+        runTest(tp, sig),
+        doFail(),
+      )
+    except Defect:
+      echo "Errored out"
+    finally:
       echo "Run GC"
       GC_fullCollect()
       os.sleep(2_000)
-      echo "Done"
