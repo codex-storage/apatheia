@@ -12,7 +12,8 @@ import taskpools
 ## cancelation of the thread-future. 
 ## 
 ## It keeps the future from finishing before
-## the task runs.
+## the task runs. However, it doesn't appear to be
+## triggering the finalizer for the MockSeq.
 ## 
 
 type
@@ -76,3 +77,8 @@ suite "async tests":
       GC_fullCollect()
       os.sleep(2_000)
       echo "Done"
+    os.sleep(10_000)
+    GC_fullCollect()
+  
+  teardown:
+    GC_fullCollect()
