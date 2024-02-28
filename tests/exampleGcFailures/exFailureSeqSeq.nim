@@ -23,12 +23,13 @@ proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
   echo "worker: ", data
   # for i, d in data:
   #   for j, c in d:
-  #     d[j] = char(c.uint8 + 10)
+  #     data[i][j] = char(c.uint8 + 10)
   GC_fullCollect()
   discard sig.fireSync()
 
 proc runTest(tp: TaskPool, sig: ThreadSignalPtr, i: int) {.async.} =
   ## init
+  # await sleepAsync(10.milliseconds)
   var obj1 = ("hello world! " & $i).toSeq()
   var obj2 = "goodbye denver!".toSeq()
   var data = @[obj1, obj2]
@@ -37,18 +38,18 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr, i: int) {.async.} =
   tp.spawn worker(data, sig)
 
   await wait(sig)
-  echo "data: ", data.unsafeAddr.pointer.repr
+  echo "data: ", data.addr.pointer.repr
   echo "data: ", data
+  echo ""
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
-  for i in 1..2:
-    try:
-      await runTest(tp, sig, i)
-    except AsyncTimeoutError:
-      # os.sleep(1)
-      # echo "looping..."
-      discard
+  var futs = newSeq[Future[void]]()
+  for i in 1..10_000:
+    let f = runTest(tp, sig, i)
+    # futs.add f
+    await f
     GC_fullCollect()
+  await allFutures(futs)
 
 suite "async tests":
   var tp = Taskpool.new(num_threads = 4) # Default to the number of hardware threads.
