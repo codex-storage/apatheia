@@ -19,6 +19,7 @@ import taskpools
 proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
   # os.sleep(100)
   echo "running worker: "
+  echo "worker: ", data.unsafeAddr.pointer.repr
   echo "worker: ", data
   # for i, d in data:
   #   for j, c in d:
@@ -26,9 +27,9 @@ proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
   GC_fullCollect()
   discard sig.fireSync()
 
-proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
+proc runTest(tp: TaskPool, sig: ThreadSignalPtr, i: int) {.async.} =
   ## init
-  var obj1 = "hello world!".toSeq()
+  var obj1 = ("hello world! " & $i).toSeq()
   var obj2 = "goodbye denver!".toSeq()
   var data = @[obj1, obj2]
 
@@ -36,12 +37,13 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   tp.spawn worker(data, sig)
 
   await wait(sig)
+  echo "data: ", data.unsafeAddr.pointer.repr
   echo "data: ", data
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
-  for i in 1..10_000:
+  for i in 1..2:
     try:
-      await runTest(tp, sig)
+      await runTest(tp, sig, i)
     except AsyncTimeoutError:
       # os.sleep(1)
       # echo "looping..."
