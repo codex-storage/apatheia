@@ -30,7 +30,7 @@ proc toSeqDataPtr*[T](data: seq[T]): SeqDataPtr[T] =
     )
 
 proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
-  os.sleep(100)
+  # os.sleep(100)
   echo "running worker: "
   echo "worker: ", data
   # for i, d in data:
@@ -48,7 +48,7 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   # echo "spawn worker"
   tp.spawn worker(data, sig)
 
-  # await wait(sig)
+  await wait(sig)
   echo "data: ", data
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
