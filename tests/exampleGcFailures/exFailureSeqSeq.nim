@@ -37,7 +37,7 @@ proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
   #   for j, c in d:
   #     d[j] = char(c.uint8 + 10)
   GC_fullCollect()
-  # discard sig.fireSync()
+  discard sig.fireSync()
 
 proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   ## init
@@ -48,9 +48,6 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   # echo "spawn worker"
   tp.spawn worker(data, sig)
 
-  ## adding fut.wait(100.milliseconds) creates memory issue
-  # await wait(sig)
-  ## just doing the wait is fine:
   # await wait(sig)
   echo "data: ", data
 
