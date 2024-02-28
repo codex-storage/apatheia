@@ -17,26 +17,16 @@ import taskpools
 ## 
 
 type
-  SeqDataPtr*[T] = object
-    data*: ptr UncheckedArray[T]
-    size*: int
+  SeqCursor* = object
+    data* {.cursor.}: seq[seq[char]]
 
-template toOpenArray*[T](arr: SeqDataPtr[T]): auto =
-  system.toOpenArray(arr.data, 0, arr.size)
-
-proc toSeqDataPtr*[T](data: seq[T]): SeqDataPtr[T] =
-    SeqDataPtr[T](
-      data: cast[ptr UncheckedArray[T]](unsafeAddr(data[0])), size: data.len()
-    )
-
-proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
-  # os.sleep(10)
+proc worker(data: SeqCursor, sig: ThreadSignalPtr) =
+  os.sleep(10)
   echo "running worker: "
-  echo "worker: ", data
-  # for i, d in data:
+  echo "worker: ", data.data
+  # for i, d in data.data:
   #   for j, c in d:
-  #     d[j] = char(c.uint8 + 10)
-  GC_fullCollect()
+  #     data.data[i][j] = char(c.uint8 + 10)
   discard sig.fireSync()
 
 proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
@@ -44,30 +34,30 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   var obj1 = "hello world!".toSeq()
   var obj2 = "goodbye denver!".toSeq()
   var data = @[obj1, obj2]
+  var cur = SeqCursor(data: data)
 
   # echo "spawn worker"
-  tp.spawn worker(data, sig)
+  tp.spawn worker(cur, sig)
 
   ## adding fut.wait(100.milliseconds) creates memory issue
   await wait(sig)
   ## just doing the wait is fine:
   # await wait(sig)
-  echo "data: ", data
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
-  for i in 1..10_000:
+  for i in 1..3_000:
     try:
       await runTest(tp, sig)
     except AsyncTimeoutError:
       # os.sleep(1)
       # echo "looping..."
+      # GC_fullCollect()
       discard
-    GC_fullCollect()
 
 suite "async tests":
-  var tp = Taskpool.new(num_threads = 8) # Default to the number of hardware threads.
+  var tp = Taskpool.new(num_threads = 2) # Default to the number of hardware threads.
   let sig = ThreadSignalPtr.new().get()
 
   asyncTest "test":
     await runTests(tp, sig)
-    # os.sleep(10_000)
+    os.sleep(10_000)
