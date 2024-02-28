@@ -16,19 +16,6 @@ import taskpools
 ## generally does so in a few seconds of running.
 ## 
 
-type
-  SeqDataPtr*[T] = object
-    data*: ptr UncheckedArray[T]
-    size*: int
-
-template toOpenArray*[T](arr: SeqDataPtr[T]): auto =
-  system.toOpenArray(arr.data, 0, arr.size)
-
-proc toSeqDataPtr*[T](data: seq[T]): SeqDataPtr[T] =
-    SeqDataPtr[T](
-      data: cast[ptr UncheckedArray[T]](unsafeAddr(data[0])), size: data.len()
-    )
-
 proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
   # os.sleep(100)
   echo "running worker: "
@@ -62,7 +49,7 @@ proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
     GC_fullCollect()
 
 suite "async tests":
-  var tp = Taskpool.new(num_threads = 8) # Default to the number of hardware threads.
+  var tp = Taskpool.new(num_threads = 4) # Default to the number of hardware threads.
   let sig = ThreadSignalPtr.new().get()
 
   asyncTest "test":
