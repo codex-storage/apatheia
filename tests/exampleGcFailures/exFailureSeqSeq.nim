@@ -30,14 +30,14 @@ proc toSeqDataPtr*[T](data: seq[T]): SeqDataPtr[T] =
     )
 
 proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
-  # os.sleep(10)
+  os.sleep(100)
   echo "running worker: "
   echo "worker: ", data
   # for i, d in data:
   #   for j, c in d:
   #     d[j] = char(c.uint8 + 10)
   GC_fullCollect()
-  discard sig.fireSync()
+  # discard sig.fireSync()
 
 proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   ## init
@@ -49,7 +49,7 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   tp.spawn worker(data, sig)
 
   ## adding fut.wait(100.milliseconds) creates memory issue
-  await wait(sig)
+  # await wait(sig)
   ## just doing the wait is fine:
   # await wait(sig)
   echo "data: ", data
