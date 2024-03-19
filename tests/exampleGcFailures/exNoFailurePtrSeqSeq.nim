@@ -16,11 +16,11 @@ import taskpools
 ## generally does so in a few seconds of running.
 ## 
 
-proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
+proc worker(data: ptr seq[seq[char]], sig: ThreadSignalPtr) =
   # os.sleep(100)
   echo "running worker: "
-  echo "worker: ", data.unsafeAddr.pointer.repr
-  echo "worker: ", data
+  echo "worker: ", data.pointer.repr
+  echo "worker: ", data[]
   # for i, d in data:
   #   for j, c in d:
   #     data[i][j] = char(c.uint8 + 10)
@@ -35,7 +35,7 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr, i: int) {.async.} =
   var data = @[obj1, obj2]
 
   # echo "spawn worker"
-  tp.spawn worker(data, sig)
+  tp.spawn worker(addr data, sig)
 
   await wait(sig)
   echo "data: ", data.addr.pointer.repr
@@ -44,7 +44,7 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr, i: int) {.async.} =
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   var futs = newSeq[Future[void]]()
-  for i in 1..10_000:
+  for i in 1..40_000:
     let f = runTest(tp, sig, i)
     # futs.add f
     await f
