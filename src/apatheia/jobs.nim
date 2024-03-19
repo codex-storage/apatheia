@@ -50,6 +50,11 @@ type
 template toOpenArray*[T](arr: OpenArrayHolder[T]): auto =
   system.toOpenArray(arr.data, 0, arr.size)
 
+proc toArrayHolder*[T](data: seq[T]): OpenArrayHolder[T] =
+    OpenArrayHolder[T](
+      data: cast[ptr UncheckedArray[T]](unsafeAddr(data[0])), size: data.len()
+    )
+
 func jobId*[T](fut: Future[T]): JobId =
   JobId fut.id()
 
@@ -93,9 +98,7 @@ template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
   when T is SupportedSeqTypes:
     let rval = SeqRetainer[T](data: exp)
     retainMemory(fut.jobId(), rval)
-    let expPtr = OpenArrayHolder[T](
-      data: cast[ptr UncheckedArray[T]](unsafeAddr(rval.data[0])), size: rval.data.len()
-    )
+    let expPtr = toArrayHolder(rval.data)
     expPtr
   else:
     {.error: "unsupported sequence type for job argument: " & $typeof(seq[T]).}
@@ -103,9 +106,7 @@ template checkJobArgs*[T](exp: seq[T], fut: untyped): OpenArrayHolder[T] =
 template checkJobArgs*(exp: string, fut: untyped): OpenArrayHolder[char] =
     let rval = StrRetainer(data: exp)
     retainMemory(fut.jobId(), rval)
-    let expPtr = OpenArrayHolder[char](
-      data: cast[ptr UncheckedArray[char]](unsafeAddr(rval.data[0])), size: rval.data.len()
-    )
+    let expPtr = toArrayHolder(rval.data)
     expPtr
 
 template checkJobArgs*(exp: typed, fut: untyped): auto =
