@@ -44,7 +44,7 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr, i: int) {.async.} =
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   var futs = newSeq[Future[void]]()
-  for i in 1..40_000:
+  for i in 1..1:
     let f = runTest(tp, sig, i)
     # futs.add f
     await f

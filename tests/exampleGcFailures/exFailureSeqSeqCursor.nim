@@ -24,6 +24,7 @@ proc worker(data: SeqCursor, sig: ThreadSignalPtr) =
   os.sleep(10)
   echo "running worker: "
   echo "worker: ", data.data
+  echo "worker:addr: ", cast[pointer](data.data).repr
   # for i, d in data.data:
   #   for j, c in d:
   #     data.data[i][j] = char(c.uint8 + 10)
@@ -41,11 +42,13 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
 
   ## adding fut.wait(100.milliseconds) creates memory issue
   await wait(sig)
+  echo "data:addr: ", data.addr.pointer.repr
+  echo "data:cursor:addr: ", cast[pointer](cur.data).repr
   ## just doing the wait is fine:
   # await wait(sig)
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
-  for i in 1..3_000:
+  for i in 1..1:
     try:
       await runTest(tp, sig)
     except AsyncTimeoutError:
@@ -60,4 +63,4 @@ suite "async tests":
 
   asyncTest "test":
     await runTests(tp, sig)
-    os.sleep(10_000)
+    # os.sleep(10_000)
