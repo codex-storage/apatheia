@@ -4,28 +4,37 @@ import chronos/threadsync
 import chronos/unittest2/asynctests
 import taskpools
 
-proc worker(data: string, sig: ThreadSignalPtr) =
-  os.sleep(4_000)
-  echo "running worker: "
+type
+  Test* = object
+    count*: int
+
+proc `=destroy`*(obj: var Test) =
+  echo "destroy count: ", obj.count, " thread: ", getThreadId()
+
+proc worker(data: seq[Test], sig: ThreadSignalPtr) =
+  os.sleep(40)
+  echo "running worker: ", getThreadId()
   echo "worker: ", data
   discard sig.fireSync()
 
 proc runTest(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   ## init
-  var obj = "hello world!"
-  # obj.shallow()
+  var obj = @[Test(count: 1), Test(count: 2)]
 
   echo "spawn worker"
   tp.spawn worker(obj, sig)
 
+  obj[0].count = 10
+  obj[1].count = 20
   ## adding fut.wait(100.milliseconds) creates memory issue
-  await wait(sig).wait(100.milliseconds)
+  await wait(sig)
   ## just doing the wait is fine:
   # await wait(sig)
 
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
-  for i in 1..2_000:
+  for i in 1..1:
     try:
+      echo "\n\nrunning main: ", getThreadId()
       await runTest(tp, sig)
       os.sleep(200)
     except AsyncTimeoutError:
