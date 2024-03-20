@@ -17,7 +17,7 @@ import taskpools
 ## 
 
 proc worker(data: seq[seq[char]], sig: ThreadSignalPtr) =
-  # os.sleep(100)
+  os.sleep(1_000)
   echo "running worker: "
   echo "worker: ", data.unsafeAddr.pointer.repr
   echo "worker: ", data
@@ -45,7 +45,7 @@ proc runTest(tp: TaskPool, sig: ThreadSignalPtr, i: int) {.async.} =
 proc runTests(tp: TaskPool, sig: ThreadSignalPtr) {.async.} =
   var futs = newSeq[Future[void]]()
   for i in 1..10_000:
-    let f = runTest(tp, sig, i)
+    let f = runTest(tp, sig, i).wait(100.milliseconds)
     # futs.add f
     await f
     GC_fullCollect()
